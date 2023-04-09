@@ -1,5 +1,6 @@
 import type { V2_MetaFunction } from "@remix-run/node";
 import { Link } from "@remix-run/react";
+import ReactS3Uploader from "react-s3-uploader";
 
 import { useOptionalUser } from "~/utils";
 
@@ -7,6 +8,11 @@ export const meta: V2_MetaFunction = () => [{ title: "Remix Notes" }];
 
 export default function Index() {
   const user = useOptionalUser();
+
+  // const onUploadStart = (file, next) => {
+
+  // }
+
   return (
     <main className="relative min-h-screen bg-white sm:flex sm:items-center sm:justify-center">
       <div className="relative sm:pb-16 sm:pt-8">
@@ -53,6 +59,27 @@ export default function Index() {
                     </Link>
                   </div>
                 )}
+              </div>
+              <div className="mx-auto mt-10 max-w-sm sm:flex sm:max-w-none sm:justify-center">
+                <ReactS3Uploader
+                  signingUrl="/signedurl"
+                  signingUrlMethod="GET"
+                  // accept="image/*"
+                  s3path="tmp/"
+                  // preprocess={this.onUploadStart}
+                  // onSignedUrl={this.onSignedUrl}
+                  // onProgress={this.onUploadProgress}
+                  // onError={this.onUploadError}
+                  // onFinish={this.onUploadFinish}
+                  // signingUrlHeaders={{ additional: headers }}
+                  // signingUrlQueryParams={{ additional: query-params }}
+                  signingUrlWithCredentials={ true }      // in case when need to pass authentication credentials via CORS
+                  uploadRequestHeaders={{ 'x-amz-acl': 'private' }}
+                  contentDisposition="auto"
+                  scrubFilename={(filename: string) => filename.replace(/[^\w\d_\-.]+/ig, '')}
+                  // inputRef={cmp => this.uploadInput = cmp}
+                  autoUpload={true}
+                />
               </div>
             </div>
           </div>
