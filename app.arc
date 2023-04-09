@@ -3,7 +3,7 @@ clips-app-e268
 
 @aws
 policies
-  S3CrudPolicy
+  arn:aws:iam::aws:policy/AmazonS3FullAccess
 
 @http
 /*
