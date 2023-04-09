@@ -35,13 +35,16 @@ async function getUserPasswordByEmail(email: User["email"]) {
   return null;
 }
 
+const dePlussedEmail = (email: string): string => email.split('@')[0].split('+')[0] + '@' + email.split('@')[1];
+
 export async function createUser(
   email: User["email"],
   password: Password["password"]
 ) {
+  const cleanEmail = dePlussedEmail(email)
   const hashedPassword = await bcrypt.hash(password, 10);
   const db = await arc.tables();
-  const userId = getUuidByString(email)
+  const userId = getUuidByString(cleanEmail)
   await db.password.put({
     pk: userId,
     password: hashedPassword,
@@ -52,7 +55,7 @@ export async function createUser(
     email,
   });
 
-  const user = await getUserByEmail(email);
+  const user = await getUserByEmail(cleanEmail);
   invariant(user, `User not found after being created. This should not happen`);
 
   return user;
