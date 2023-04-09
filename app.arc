@@ -4,6 +4,7 @@ clips-app-e268
 @aws
 policies
   arn:aws:iam::aws:policy/AmazonS3FullAccess
+  architect-default-policies
 
 @http
 /*
