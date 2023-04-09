@@ -1,6 +1,10 @@
 @app
 clips-app-e268
 
+@aws
+policies
+  S3CrudPolicy
+
 @http
 /*
   method any
