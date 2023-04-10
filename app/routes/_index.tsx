@@ -8,10 +8,6 @@ export const meta: V2_MetaFunction = () => [{ title: "Remix Notes" }];
 export default function Index() {
   const user = useOptionalUser();
 
-  // const onUploadStart = (file, next) => {
-
-  // }
-
   return (
     <main className="relative min-h-screen bg-white sm:flex sm:items-center sm:justify-center">
       <div className="relative sm:pb-16 sm:pt-8">

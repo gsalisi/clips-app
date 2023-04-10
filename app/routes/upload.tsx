@@ -1,22 +1,28 @@
 import ReactS3Uploader from "react-s3-uploader";
-import { Form, Link, Outlet, useFetcher } from "@remix-run/react";
+import { Form, Link, useFetcher } from "@remix-run/react";
 import { useUser } from "~/utils";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function UploadIndexPage() {
-  const fetcher = useFetcher();
+  const getObjectUrl = useFetcher();
+  const sqsAction = useFetcher();
   const user = useUser();
-//   const [uploadedFile, setUploadedFile] = useState()
+  const [inputComp, setInputComp] = useState<HTMLInputElement>();
 
   const onUploadFinish = (res: any, file: any) => {
-    console.log(res, file)
+    console.log(res, file);
     const params = new URLSearchParams({
       key: res.key,
       bucket: res.bucket,
-    })
-    fetcher.load(`/s3/getobjecturl?${params.toString()}`);
-  }
-  
+    });
+    getObjectUrl.data = undefined;
+    getObjectUrl.load(`/s3/getobjecturl?${params.toString()}`);
+    if (inputComp) {
+      inputComp.value = "";
+    }
+    sqsAction.submit({ key: res.key, bucket: res.bucket }, { method: "post", action: "/sqs/cropper"})
+  };
+
   return (
     <div className="flex h-full min-h-screen flex-col">
       <header className="flex items-center justify-between bg-slate-800 p-4 text-white">
@@ -39,10 +45,9 @@ export default function UploadIndexPage() {
           <ReactS3Uploader
             signingUrl="/s3/putobjecturl"
             signingUrlMethod="GET"
-            // accept="image/*"
             s3path="tmp/"
             // preprocess={this.onUploadStart}
-            // onSignedUrl={this.onSignedUrl}
+            // onSignedUrl={onSignedUrl}
             // onProgress={this.onUploadProgress}
             // onError={this.onUploadError}
             onFinish={onUploadFinish}
@@ -54,7 +59,7 @@ export default function UploadIndexPage() {
             scrubFilename={(filename: string) =>
               filename.replace(/[^\w\d_\-.]+/gi, "")
             }
-            // inputRef={cmp => this.uploadInput = cmp}
+            inputRef={(cmp) => setInputComp(cmp)}
             autoUpload={true}
           />
 
@@ -62,9 +67,9 @@ export default function UploadIndexPage() {
         </div>
 
         <div className="flex-1 p-6">
-          {fetcher.data && (
+          {getObjectUrl.state === "idle" && getObjectUrl.data && (
             <video width="320" height="240" controls>
-              <source src={fetcher.data.signedUrl}/>
+              <source src={getObjectUrl.data.signedUrl} />
             </video>
           )}
         </div>
