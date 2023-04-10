@@ -15,7 +15,7 @@ export async function loader({ request }: LoaderArgs) {
     const key = url.searchParams.get('key')
 
     if (!key?.startsWith(`tmp/${userId}`)) {
-        return json({ error: "S3 path not accessible by user", ok : false })
+        return json({ error: { body: "S3 path not accessible by user" } , status : 403 })
     }
 
     const s3Params = {
