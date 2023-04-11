@@ -2,9 +2,8 @@ import type { LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import AWS from "aws-sdk";
 import { requireUserId } from "~/session.server";
-// import { v4 as uuidv4 } from 'uuid';
 
-const s3 = new AWS.S3()
+
 const CLIPS_S3_BUCKET_NAME = "clips-store-5a1a17e"
 const CLIPS_S3_UPLOAD_PATH = "tmp"
 
@@ -23,6 +22,7 @@ export async function loader({ request }: LoaderArgs) {
         ACL: 'private'
     }
     // console.log('Params: ', s3Params)
+    const s3 = new AWS.S3()
     const uploadURL = await s3.getSignedUrlPromise('putObject', s3Params)
 
     return json({
