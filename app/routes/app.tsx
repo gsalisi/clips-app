@@ -1,13 +1,16 @@
+import type { V2_MetaFunction } from "@remix-run/node";
 import ReactS3Uploader from "react-s3-uploader";
 import { Form, Link, useFetcher } from "@remix-run/react";
-import { useUser } from "~/utils";
+import { useOptionalUser } from "~/utils";
 import { useEffect, useState } from "react";
 
-export default function UploadIndexPage() {
+export const meta: V2_MetaFunction = () => [{ title: "Clips App" }];
+
+export default function IndexPage() {
   const listObjectsFetcher = useFetcher();
   const uploadedObjUrlFetcher = useFetcher();
   const sqsAction = useFetcher();
-  const user = useUser();
+  const user = useOptionalUser();
   const [inputComp, setInputComp] = useState<HTMLInputElement>();
   const [previewUrl, setPreviewUrl] = useState<string>();
 
@@ -48,29 +51,39 @@ export default function UploadIndexPage() {
   };
 
   useEffect(() => {
-    listObjects()
+    if (user) {
+      listObjects()
+    }
   }, [])
 
   return (
     <div className="flex h-full min-h-screen flex-col">
       <header className="flex items-center justify-between bg-slate-800 p-4 text-white">
         <h1 className="text-3xl font-bold">
-          <Link to=".">Uploader</Link>
+          <Link to=".">Clips</Link>
         </h1>
-        <p>{user.email}</p>
-        <Form action="/logout" method="post">
-          <button
-            type="submit"
-            className="rounded bg-slate-600 px-4 py-2 text-blue-100 hover:bg-blue-500 active:bg-blue-600"
+        {user && <p>{user.email}</p>}
+        {!user ? (
+          <Link
+            to="/login"
+            className="flex items-center justify-center rounded-md bg-red-500 px-4 py-3 font-medium text-white hover:bg-red-600"
           >
-            Logout
-          </button>
-        </Form>
+            Log In
+          </Link>
+        ): (
+          <Form action="/logout" method="post">
+            <button
+              type="submit"
+              className="rounded bg-slate-600 px-4 py-2 text-blue-100 hover:bg-blue-500 active:bg-blue-600"
+            >
+              Logout
+            </button>
+          </Form>
+        )}
       </header>
-
       <main className="flex h-full bg-white">
-        <div className="h-full w-80 border-r bg-gray-50">
-          <div className="p-8">
+        <div className="flex-1 p-6">
+          <div className="p-2">
             <ReactS3Uploader
               signingUrl="/s3/putobjecturl"
               signingUrlMethod="GET"
@@ -92,9 +105,6 @@ export default function UploadIndexPage() {
               autoUpload={true}
             />
           </div>
-          <hr />
-        </div>
-        <div className="flex-1 p-6">
           {uploadedObjUrlFetcher.state === "idle" &&
             uploadedObjUrlFetcher.data && (
               <div className="p-6">

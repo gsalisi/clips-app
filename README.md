@@ -1,14 +1,9 @@
-# Remix Grunge Stack
+# Clips App
 
-![The Remix Grunge Stack](https://repository-images.githubusercontent.com/463325363/edae4f5b-1a13-47ea-b90c-c05badc2a700)
-
-Learn more about [Remix Stacks](https://remix.run/stacks).
-
-```
-npx create-remix@latest --template remix-run/grunge-stack
-```
 
 ## What's in the stack
+
+Uses the Remix Grunge Stack. Learn more about [Remix Stacks](https://remix.run/stacks).
 
 - [AWS deployment](https://aws.com) with [Architect](https://arc.codes/)
 - Production-ready [DynamoDB Database](https://aws.amazon.com/dynamodb/)
@@ -26,18 +21,6 @@ npx create-remix@latest --template remix-run/grunge-stack
 Not a fan of bits of the stack? Fork it, change it, and use `npx create-remix --template your/repo`! Make it your own.
 
 ## Development
-
-- This step only applies if you've opted out of having the CLI install dependencies for you:
-
-  ```sh
-  npx remix init
-  ```
-
-- Validate the app has been set up properly (optional):
-
-  ```sh
-  npm run validate
-  ```
 
 - Start dev server:
 
