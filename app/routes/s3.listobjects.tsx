@@ -9,7 +9,7 @@ const CLIPS_S3_BUCKET_NAME = "clips-store-5a1a17e"
 const CLIPS_S3_UPLOAD_PATH = "cropper_out"
 
 export async function loader({ request }: LoaderArgs) {
-    const userId = await requireUserId(request);
+    const userId = await requireUserId(request, '/');
     // const url = new URL(request.url)
     // const objectName = url.searchParams.get('objectName')
     // const contentType = url.searchParams.get('contentType')
@@ -22,7 +22,7 @@ export async function loader({ request }: LoaderArgs) {
     // console.log('Params: ', params)
     const s3 = new AWS.S3()
     const objects = await s3.listObjectsV2(params).promise()
-    console.log(objects)
+    // console.log(objects)
 
     return json({
         objects
