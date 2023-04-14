@@ -10,9 +10,6 @@ const CLIPS_S3_UPLOAD_PATH = "cropper_out"
 
 export async function loader({ request }: LoaderArgs) {
     const userId = await requireUserId(request, '/');
-    // const url = new URL(request.url)
-    // const objectName = url.searchParams.get('objectName')
-    // const contentType = url.searchParams.get('contentType')
 
     // Get signed URL from S3
     const params = {

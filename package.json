@@ -28,6 +28,7 @@
   "dependencies": {
     "@architect/architect": "^10.10.3",
     "@architect/functions": "^5.4.0",
+    "@heroicons/react": "^2.0.17",
     "@remix-run/architect": "^1.15.0",
     "@remix-run/node": "^1.15.0",
     "@remix-run/react": "^1.15.0",
