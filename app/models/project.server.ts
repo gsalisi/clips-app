@@ -3,28 +3,28 @@ import cuid from "cuid";
 
 import type { User } from "./user.server";
 
-export type Note = {
+export type Project = {
   id: ReturnType<typeof cuid>;
   userId: User["id"];
   title: string;
   body: string;
 };
 
-type NoteItem = {
+type ProjectItem = {
   pk: User["id"];
-  sk: `note#${Note["id"]}`;
+  sk: `project#${Project["id"]}`;
 };
 
-const skToId = (sk: NoteItem["sk"]): Note["id"] => sk.replace(/^note#/, "");
-const idToSk = (id: Note["id"]): NoteItem["sk"] => `note#${id}`;
+const skToId = (sk: ProjectItem["sk"]): Project["id"] => sk.replace(/^project#/, "");
+const idToSk = (id: Project["id"]): ProjectItem["sk"] => `project#${id}`;
 
-export async function getNote({
+export async function getProject({
   id,
   userId,
-}: Pick<Note, "id" | "userId">): Promise<Note | null> {
+}: Pick<Project, "id" | "userId">): Promise<Project | null> {
   const db = await arc.tables();
 
-  const result = await db.note.get({ pk: userId, sk: idToSk(id) });
+  const result = await db.project.get({ pk: userId, sk: idToSk(id) });
 
   if (result) {
     return {
@@ -37,12 +37,12 @@ export async function getNote({
   return null;
 }
 
-export async function getNoteListItems({
+export async function getProjectListItems({
   userId,
-}: Pick<Note, "userId">): Promise<Array<Pick<Note, "id" | "title">>> {
+}: Pick<Project, "userId">): Promise<Array<Pick<Project, "id" | "title">>> {
   const db = await arc.tables();
 
-  const result = await db.note.query({
+  const result = await db.project.query({
     KeyConditionExpression: "pk = :pk",
     ExpressionAttributeValues: { ":pk": userId },
   });
@@ -53,14 +53,14 @@ export async function getNoteListItems({
   }));
 }
 
-export async function createNote({
+export async function createProject({
   body,
   title,
   userId,
-}: Pick<Note, "body" | "title" | "userId">): Promise<Note> {
+}: Pick<Project, "body" | "title" | "userId">): Promise<Project> {
   const db = await arc.tables();
 
-  const result = await db.note.put({
+  const result = await db.project.put({
     pk: userId,
     sk: idToSk(cuid()),
     title: title,
@@ -74,7 +74,7 @@ export async function createNote({
   };
 }
 
-export async function deleteNote({ id, userId }: Pick<Note, "id" | "userId">) {
+export async function deleteProject({ id, userId }: Pick<Project, "id" | "userId">) {
   const db = await arc.tables();
-  return db.note.delete({ pk: userId, sk: idToSk(id) });
+  return db.project.delete({ pk: userId, sk: idToSk(id) });
 }

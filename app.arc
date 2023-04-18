@@ -21,6 +21,6 @@ user
 password
   pk *String # userId
 
-note
+project
   pk *String  # userId
   sk **String # noteId
