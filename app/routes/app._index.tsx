@@ -20,7 +20,7 @@ export default function ProjectsPage() {
   // const user = useUser();
 
   return (
-    <div className="flex h-full w-full justify-center">
+    <div className="flex h-full w-full justify-center bg-gray-50">
       <div className="h-full w-full max-w-lg bg-gray-50">
           <Link to="new" className="block p-4 text-xl text-blue-500">
             + New Project

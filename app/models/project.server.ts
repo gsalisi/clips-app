@@ -3,11 +3,16 @@ import cuid from "cuid";
 
 import type { User } from "./user.server";
 
+export type Size = {
+  width: number
+  height: number
+}
+
 export type Project = {
   id: ReturnType<typeof cuid>;
   userId: User["id"];
   title: string;
-  body: string;
+  size: Size;
 };
 
 type ProjectItem = {
@@ -31,7 +36,7 @@ export async function getProject({
       userId: result.pk,
       id: result.sk,
       title: result.title,
-      body: result.body,
+      size: result.size,
     };
   }
   return null;
@@ -54,23 +59,23 @@ export async function getProjectListItems({
 }
 
 export async function createProject({
-  body,
+  size,
   title,
   userId,
-}: Pick<Project, "body" | "title" | "userId">): Promise<Project> {
+}: Pick<Project, "size" | "title" | "userId">): Promise<Project> {
   const db = await arc.tables();
 
   const result = await db.project.put({
     pk: userId,
     sk: idToSk(cuid()),
     title: title,
-    body: body,
+    size: size,
   });
   return {
     id: skToId(result.sk),
     userId: result.pk,
     title: result.title,
-    body: result.body,
+    size: result.size,
   };
 }
 
