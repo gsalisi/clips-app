@@ -12,11 +12,12 @@ export async function loader({ request }: LoaderArgs) {
     const url = new URL(request.url)
     const objectName = url.searchParams.get('objectName')
     const contentType = url.searchParams.get('contentType')
+    const projectId = url.searchParams.get('path')
 
     // Get signed URL from S3
     const s3Params = {
         Bucket: CLIPS_S3_BUCKET_NAME,
-        Key: `${CLIPS_S3_UPLOAD_PATH}/${userId}/${objectName}`,
+        Key: `${CLIPS_S3_UPLOAD_PATH}/${userId}/${projectId}/${objectName}`,
         Expires: 300,
         ContentType: contentType,
         ACL: 'private'

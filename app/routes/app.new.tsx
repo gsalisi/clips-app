@@ -44,8 +44,7 @@ export const action = async ({ request }: ActionArgs) => {
   };
 
   const aspectRatioStr = formData.get("aspectRatio");
-  const size: Size =
-    sizes[AspectRatio[aspectRatioStr as keyof typeof AspectRatio]];
+  const size: Size = sizes[aspectRatioStr as AspectRatio];
 
   const project = await createProject({ size, title, userId });
 
@@ -68,9 +67,7 @@ export default function ProjectsPage() {
   const onAspectRatioChange: React.ChangeEventHandler<HTMLInputElement> = (
     event
   ) => {
-    setAspectRatio(
-      AspectRatio[event.currentTarget.value as keyof typeof AspectRatio]
-    );
+    setAspectRatio(event.currentTarget.value as AspectRatio);
   };
 
   return (

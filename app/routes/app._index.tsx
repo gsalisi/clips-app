@@ -1,8 +1,9 @@
-import type { V2_MetaFunction, LoaderArgs } from "@remix-run/node";
+import { V2_MetaFunction, LoaderArgs, ActionArgs, redirect } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, NavLink, useLoaderData } from "@remix-run/react";
+import invariant from "tiny-invariant";
 
-import { getProjectListItems } from "~/models/project.server";
+import { deleteProject, getProjectListItems } from "~/models/project.server";
 import { requireUserId } from "~/session.server";
 import { useUser } from "~/utils";
 
@@ -14,6 +15,15 @@ export const loader = async ({ request }: LoaderArgs) => {
   return json({ projectListItems });
 };
 
+
+export const action = async ({ params, request }: ActionArgs) => {
+  const userId = await requireUserId(request);
+  invariant(params.projectID, "projectID not found");
+
+  await deleteProject({ id: params.projectID, userId });
+
+  return redirect("/app");
+};
 
 export default function ProjectsPage() {
   const data = useLoaderData<typeof loader>();
