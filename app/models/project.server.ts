@@ -1,5 +1,6 @@
 import arc from "@architect/functions";
 import cuid from "cuid";
+import invariant from "tiny-invariant";
 
 import type { User } from "./user.server";
 
@@ -8,11 +9,18 @@ export type Size = {
   height: number
 }
 
+export type S3Location = {
+  bucket: string
+  key: string
+}
+
 export type Project = {
   id: ReturnType<typeof cuid>;
   userId: User["id"];
   title: string;
   size: Size;
+  inputFile: S3Location,
+  outputFile: S3Location,
 };
 
 type ProjectItem = {
@@ -34,9 +42,11 @@ export async function getProject({
   if (result) {
     return {
       userId: result.pk,
-      id: result.sk,
+      id: skToId(result.sk),
       title: result.title,
       size: result.size,
+      inputFile: result.inputFile,
+      outputFile: result.outputFile
     };
   }
   return null;
@@ -65,6 +75,12 @@ export async function createProject({
 }: Pick<Project, "size" | "title" | "userId">): Promise<Project> {
   const db = await arc.tables();
 
+  console.log({
+    pk: userId,
+    sk: idToSk(cuid()),
+    title: title,
+    size: size,
+  })
   const result = await db.project.put({
     pk: userId,
     sk: idToSk(cuid()),
@@ -76,6 +92,37 @@ export async function createProject({
     userId: result.pk,
     title: result.title,
     size: result.size,
+    inputFile: result.inputFile,
+    outputFile: result.outputFile,
+  };
+}
+
+export async function updateProject({
+  id,
+  userId,
+  inputFile,
+  outputFile,
+}: Pick<Project, "id" | "userId" | "inputFile" | "outputFile">): Promise<Project> {
+  const db = await arc.tables();
+  const existingProj = await db.project.get({ pk: userId, sk: idToSk(id) });
+  
+  if (!existingProj) {
+    throw Error(`Project ${id} does not exist.`)
+  }
+
+  const result = await db.project.put({
+    ...existingProj,
+    inputFile,
+    outputFile,
+  });
+  
+  return {
+    id: skToId(result.sk),
+    userId: result.pk,
+    title: result.title,
+    size: result.size,
+    inputFile: result.inputFile,
+    outputFile: result.outputFile,
   };
 }
 
