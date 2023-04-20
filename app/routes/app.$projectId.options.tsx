@@ -4,7 +4,7 @@ import { Form, useFetcher, useLoaderData } from "@remix-run/react";
 import { useState } from "react";
 import { requireUserId } from "~/session.server";
 import invariant from "tiny-invariant";
-import { getProject, updateProject } from "~/models/project.server";
+import { EffectMetadata, getProject, updateProject } from "~/models/project.server";
 import { sendSqsMessage } from "~/sqs.server";
 
 export const meta: V2_MetaFunction = () => [{ title: "Clips App" }];
@@ -28,16 +28,40 @@ export const action = async ({ params, request }: ActionArgs) => {
   if (!project) {
     throw new Response("Not Found", { status: 404 });
   }
+
+  if (!project.inputFile || !project.outputFile) {
+    throw new Response("Missing inputFile and outputFile fields in project", { status: 400 });
+  }
+  const effectMetadata: EffectMetadata = {
+    type: "single_crop",
+    attributes: {
+      size: project.size,
+      excludeLimbs: true,
+      paddingRatio: 1.2,
+      smoothingWindowSecs: 2,
+    }
+  }
+  await updateProject({
+    id: params.projectId,
+    userId,
+    effectMetadata,
+  });
+
   const response = await sendSqsMessage({
-    key: project.inputFile.key,
+    type: "crop",
+    input_key: project.inputFile.key,
+    output_key: project.outputFile.key,
     bucket: project.inputFile.bucket,
-    output_width: project.size.width,
-    output_height: project.size.height,
+    output_width: effectMetadata.attributes.size.width,
+    output_height: effectMetadata.attributes.size.height,
+    exclude_limbs: effectMetadata.attributes.excludeLimbs,
+    padding_ratio: effectMetadata.attributes.paddingRatio,
+    smoothing_window_secs: effectMetadata.attributes.smoothingWindowSecs
   })
 
   console.log("SQS Response:")
   console.log(response)
-  return redirect("preview");
+  return redirect(`/app/${params.projectId}/preview`);
 };
 
 

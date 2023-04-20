@@ -14,13 +14,39 @@ export type S3Location = {
   key: string
 }
 
+export type SingleCropAttributes = {
+  size: Size,
+  excludeLimbs: boolean,
+  paddingRatio: number,
+  smoothingWindowSecs: number,
+}
+
+export type MultiCropAttributes = SingleCropAttributes & {
+  trackIds: string[],
+  trackLocation: S3Location,
+  trackPreviewDir: S3Location,
+}
+
+export type EffectMetadata = {
+  type: "single_crop" | "multi_crop"
+  attributes: SingleCropAttributes | MultiCropAttributes
+}
+
+export enum ProjectState {
+  Started = "Started",
+  Processing = "Processing",
+  Completed = "Completed",
+}
+
 export type Project = {
   id: ReturnType<typeof cuid>;
   userId: User["id"];
   title: string;
   size: Size;
-  inputFile: S3Location,
-  outputFile: S3Location,
+  state: ProjectState,
+  inputFile?: S3Location,
+  outputFile?: S3Location,
+  effectMetadata?: EffectMetadata,
 };
 
 type ProjectItem = {
@@ -45,8 +71,10 @@ export async function getProject({
       id: skToId(result.sk),
       title: result.title,
       size: result.size,
+      state: result.state,
       inputFile: result.inputFile,
-      outputFile: result.outputFile
+      outputFile: result.outputFile,
+      effectMetadata: result.effectMetadata,
     };
   }
   return null;
@@ -92,8 +120,10 @@ export async function createProject({
     userId: result.pk,
     title: result.title,
     size: result.size,
+    state: result.state,
     inputFile: result.inputFile,
     outputFile: result.outputFile,
+    effectMetadata: result.effectMetadata,
   };
 }
 
@@ -102,7 +132,8 @@ export async function updateProject({
   userId,
   inputFile,
   outputFile,
-}: Pick<Project, "id" | "userId" | "inputFile" | "outputFile">): Promise<Project> {
+  effectMetadata,
+}: Pick<Project, "id" | "userId" | "inputFile" | "outputFile" | "effectMetadata">): Promise<Project> {
   const db = await arc.tables();
   const existingProj = await db.project.get({ pk: userId, sk: idToSk(id) });
   
@@ -114,6 +145,7 @@ export async function updateProject({
     ...existingProj,
     inputFile,
     outputFile,
+    effectMetadata,
   });
   
   return {
@@ -121,8 +153,10 @@ export async function updateProject({
     userId: result.pk,
     title: result.title,
     size: result.size,
+    state: result.state,
     inputFile: result.inputFile,
     outputFile: result.outputFile,
+    effectMetadata: result.effectMetadata,
   };
 }
 

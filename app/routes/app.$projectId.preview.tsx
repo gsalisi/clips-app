@@ -22,7 +22,8 @@ export const loader = async ({ params, request }: LoaderArgs) => {
 
 
 export default function ProjectPreview() {
-  // const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>();
+  console.log(data.project)
   const [selectedEffect, setSelectedEffect] = useState<string>("");
   const allEffects = ["Single Person Crop", "Multi-Person Crop"]
   const onEffectChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
@@ -33,15 +34,9 @@ export default function ProjectPreview() {
     <div className="flex h-full w-full max-w-xl flex-col items-center p-2">
       <div className="form-control w-full max-w-lg">
         <label className="label">
-          <span className="label-text">{"Select Effect Type"}</span>
+          <span className="label-text">{"Output Preview"}</span>
         </label>
-        <select className="select select-bordered" onChange={onEffectChange} value={selectedEffect}>
-          <option value="" disabled>Pick one</option>
-          {allEffects.map((eff) => <option key={eff} value={eff}>{eff}</option>)}
-        </select>
-        <Form method="post">
-          <button className="btn-primary btn my-1" disabled={selectedEffect !== allEffects[0]}>Next</button>
-        </Form>
+        
       </div>
     </div>
   );
