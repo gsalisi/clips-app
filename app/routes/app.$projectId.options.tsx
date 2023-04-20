@@ -29,9 +29,6 @@ export const action = async ({ params, request }: ActionArgs) => {
     throw new Response("Not Found", { status: 404 });
   }
 
-  if (!project.inputFile || !project.outputFile) {
-    throw new Response("Missing inputFile and outputFile fields in project", { status: 400 });
-  }
   const effectMetadata: EffectMetadata = {
     type: "single_crop",
     attributes: {
@@ -41,22 +38,30 @@ export const action = async ({ params, request }: ActionArgs) => {
       smoothingWindowSecs: 2,
     }
   }
-  await updateProject({
+  
+  const updatedProject = await updateProject({
     id: params.projectId,
     userId,
     effectMetadata,
   });
 
+  if (!updatedProject.inputFile || !updatedProject.outputFile) {
+    throw new Response("Missing inputFile and outputFile fields in project", { status: 400 });
+  }
+  if (!updatedProject.effectMetadata) {
+    throw new Response("Missing effectMetadata field in project", { status: 400 });
+  }
+
   const response = await sendSqsMessage({
     type: "crop",
-    input_key: project.inputFile.key,
-    output_key: project.outputFile.key,
-    bucket: project.inputFile.bucket,
-    output_width: effectMetadata.attributes.size.width,
-    output_height: effectMetadata.attributes.size.height,
-    exclude_limbs: effectMetadata.attributes.excludeLimbs,
-    padding_ratio: effectMetadata.attributes.paddingRatio,
-    smoothing_window_secs: effectMetadata.attributes.smoothingWindowSecs
+    input_key: updatedProject.inputFile.key,
+    output_key: updatedProject.outputFile.key,
+    bucket: updatedProject.inputFile.bucket,
+    output_width: updatedProject.effectMetadata.attributes.size.width,
+    output_height: updatedProject.effectMetadata.attributes.size.height,
+    exclude_limbs: updatedProject.effectMetadata.attributes.excludeLimbs,
+    padding_ratio: updatedProject.effectMetadata.attributes.paddingRatio,
+    smoothing_window_secs: updatedProject.effectMetadata.attributes.smoothingWindowSecs
   })
 
   console.log("SQS Response:")

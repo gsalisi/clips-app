@@ -23,7 +23,6 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   if (!project) {
     throw new Response("Not Found", { status: 404 });
   }
-
   if (project.inputFile) {
     return redirect(`/app/${project.id}/${project.effectMetadata ? "preview" : "options"}`);
   }
@@ -93,7 +92,6 @@ export default function ProjectPage() {
   return (
     <div className="flex h-full w-full max-w-xl flex-col items-center p-2">
       <div className="w-full max-w-lg">
-        <h3 className="text-2xl font-bold">{data.project.title}</h3>
         <label className="label">
           <span className="label-text">{"Accepts video files < 5GB"}</span>
         </label>

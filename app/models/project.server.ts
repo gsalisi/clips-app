@@ -143,9 +143,9 @@ export async function updateProject({
 
   const result = await db.project.put({
     ...existingProj,
-    inputFile,
-    outputFile,
-    effectMetadata,
+    inputFile: inputFile ?? existingProj.inputFile,
+    outputFile: outputFile ?? existingProj.outputFile,
+    effectMetadata: effectMetadata ?? existingProj.effectMetadata,
   });
   
   return {
