@@ -1,50 +1,44 @@
 import AWS, { SQS } from "aws-sdk";
+import { bool } from "aws-sdk/clients/signer";
 import path from "node:path";
 
+// This is in camel-case because this is consumed in the python code
+type ClipsCorePayload = {
+  type: "crop" | "track";
+  bucket: string;
+  input_key: string;
+  output_key: string;
+  output_width: number;
+  output_height: number;
+  padding_ratio: number;
+  smoothing_window_secs: number;
+  exclude_limbs: bool;
+};
 
-type CropperMessage = {
-    key: string,
-    bucket: string,
-    output_width: number,
-    output_height: number,
-}
+const QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/872511653058/cropper_queue-a871fe0.fifo"
 
-export const sendSqsMessage = async ({
-    key,
-    bucket,
-    output_width,
-    output_height,
-  }: CropperMessage): Promise<SQS.SendMessageResult> => {
-  const sqs = new AWS.SQS({ apiVersion: "2012-11-05" });
-
-  if (!key || !bucket || !output_height || !output_width) {
-    throw Error(`All parameters required: ${key}, ${bucket}, ${output_width}, ${output_height}`)
+export const sendSqsMessage = async (
+  payload: ClipsCorePayload
+): Promise<SQS.SendMessageResult> => {
+  for (let value of Object.values(payload)) {
+    if (!value) {
+      throw Error(`All parameters required. ${value} does not exist.`);
+    }
   }
-  const payload = {
-    key,
-    bucket,
-    output_width,
-    output_height,
-  };
-
-  // track_file?
-  // track_ids?
   const params = {
-    // Remove DelaySeconds parameter and value for FIFO queues
     MessageAttributes: {
       Action: {
         DataType: "String",
-        StringValue: "crop",
+        StringValue: payload.type,
       },
     },
     MessageBody: JSON.stringify(payload),
-    MessageDeduplicationId: key, // Required for FIFO queues
+    MessageDeduplicationId: payload.output_key, // Required for FIFO queues
     MessageGroupId: "Group1", // Required for FIFO queues
-    QueueUrl:
-      "https://sqs.us-west-2.amazonaws.com/872511653058/cropper_queue-a871fe0.fifo",
+    QueueUrl: QUEUE_URL,
   };
-
-  const sendMessagePromise: Promise<SQS.SendMessageResult> = new Promise(
+  const sqs = new AWS.SQS({ apiVersion: "2012-11-05" });
+  return new Promise(
     (resolve, reject) => {
       sqs.sendMessage(params, function (err, data) {
         if (err) {
@@ -55,9 +49,8 @@ export const sendSqsMessage = async ({
       });
     }
   );
-  return sendMessagePromise;
 };
 
 export const getS3KeyFileName = (key: string): string => {
-    return path.parse(key).name
-}
+  return path.parse(key).name;
+};
