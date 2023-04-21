@@ -12,6 +12,7 @@ import { requireUserId } from "~/session.server";
 import invariant from "tiny-invariant";
 import { getProject, S3Location, updateProject } from "~/models/project.server";
 import { getS3KeyFileName } from "~/sqs.server";
+import classNames from "classnames";
 
 export const meta: V2_MetaFunction = () => [{ title: "Clips App" }];
 
@@ -24,7 +25,9 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     throw new Response("Not Found", { status: 404 });
   }
   if (project.inputFile) {
-    return redirect(`/app/${project.id}/${project.effectMetadata ? "preview" : "options"}`);
+    return redirect(
+      `/app/${project.id}/${project.effectMetadata ? "preview" : "options"}`
+    );
   }
   return json({ project });
 };
@@ -48,7 +51,9 @@ export const action = async ({ params, request }: ActionArgs) => {
       { status: 400 }
     );
   }
-  const outputKey = `tmp/${userId}/${params.projectId}/out/${getS3KeyFileName(key)}.mp4`;
+  const outputKey = `tmp/${userId}/${params.projectId}/out/${getS3KeyFileName(
+    key
+  )}.mp4`;
 
   await updateProject({
     id: params.projectId,
@@ -66,11 +71,30 @@ export const action = async ({ params, request }: ActionArgs) => {
   return redirect(`/app/${params.projectId}/options`);
 };
 
+enum UploadState {
+  Idle,
+  Uploading,
+  Complete,
+  Error,
+}
+
 export default function ProjectPage() {
   const data = useLoaderData<typeof loader>();
   const uploadedObjUrlFetcher = useFetcher();
   const [inputComp, setInputComp] = useState<HTMLInputElement>();
   const [inputFile, setInputFile] = useState<S3Location>();
+  const [uploadState, setUploadState] = useState<UploadState>(UploadState.Idle);
+  const [uploadPercent, setUploadPercent] = useState<string>("");
+
+  const onUploadStart = (file: File, next: (f: File) => void) => {
+    setUploadState(UploadState.Uploading);
+    setUploadPercent("0%")
+    next(file)
+  };
+
+  const onUploadProgress = (percent: number, status: string, file: File) => {
+    setUploadPercent(`${percent}%`);
+  };
 
   const onUploadFinish = (res: any, file: any) => {
     console.log(res, file);
@@ -87,6 +111,12 @@ export default function ProjectPage() {
       key: res.key,
       bucket: res.bucket,
     });
+    setUploadState(UploadState.Complete);
+    setUploadPercent("")
+  };
+
+  const onUploadError = (message: string) => {
+    setUploadState(UploadState.Error);
   };
 
   return (
@@ -100,10 +130,10 @@ export default function ProjectPage() {
           signingUrl="/s3/putobjecturl"
           signingUrlMethod="GET"
           s3path={`${data.project.id}`}
-          // preprocess={this.onUploadStart}
+          preprocess={onUploadStart}
           // onSignedUrl={onSignedUrl}
-          // onProgress={this.onUploadProgress}
-          // onError={this.onUploadError}
+          onProgress={onUploadProgress}
+          onError={onUploadError}
           onFinish={onUploadFinish}
           // signingUrlHeaders={{ additional: headers }}
           // signingUrlQueryParams={{ additional: query-params }}
@@ -117,25 +147,32 @@ export default function ProjectPage() {
           autoUpload={true}
         />
       </div>
-      {uploadedObjUrlFetcher.data && (
-        <div className="w-full max-w-lg">
-          <label className="label">
-            <span className="label-text">{"Input Preview"}</span>
-          </label>
-          <div className="flex flex-col">
-            <video className="max-h-96 max-w-lg" controls>
-              <source src={uploadedObjUrlFetcher.data.signedUrl} />
-            </video>
-          </div>
-          {inputFile && (
-            <Form method="post">
-              <input type="hidden" name="key" value={inputFile.key} />
-              <input type="hidden" name="bucket" value={inputFile.bucket} />
-              <button className="btn-primary btn my-1">Next</button>
-            </Form>
-          )}
-        </div>
-      )}
+      <div className="w-full max-w-lg">
+        <Form method="post">
+          <input type="hidden" name="key" value={inputFile?.key} />
+          <input type="hidden" name="bucket" value={inputFile?.bucket} />
+          <button
+            className={classNames("btn-primary btn my-1", {
+              loading: uploadState === UploadState.Uploading,
+            })}
+            disabled={!inputFile}
+          >
+            {uploadPercent ?? uploadPercent + " "}Next
+          </button>
+        </Form>
+        {uploadedObjUrlFetcher.data && (
+          <>
+            <label className="label">
+              <span className="label-text">{"Input Preview"}</span>
+            </label>
+            <div className="flex flex-col">
+              <video className="max-h-96 max-w-lg" controls>
+                <source src={uploadedObjUrlFetcher.data.signedUrl} />
+              </video>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
