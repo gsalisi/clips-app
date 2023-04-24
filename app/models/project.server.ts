@@ -1,4 +1,5 @@
 import arc from "@architect/functions";
+import { float } from "aws-sdk/clients/lightsail";
 import cuid from "cuid";
 import invariant from "tiny-invariant";
 
@@ -14,22 +15,16 @@ export type S3Location = {
   key: string
 }
 
-export type SingleCropAttributes = {
-  size: Size,
+export type TrackHint = {
+  timeSecs: float
+  norm_ltwh: [float, float, float, float]
+}
+
+export type CropTrackerOpts = {
   excludeLimbs: boolean,
   paddingRatio: number,
   smoothingWindowSecs: number,
-}
-
-export type MultiCropAttributes = SingleCropAttributes & {
-  trackIds: string[],
-  trackLocation: S3Location,
-  trackPreviewDir: S3Location,
-}
-
-export type EffectMetadata = {
-  type: "single_crop" | "multi_crop"
-  attributes: SingleCropAttributes | MultiCropAttributes
+  trackHints?: TrackHint[],
 }
 
 export enum ProjectState {
@@ -46,7 +41,7 @@ export type Project = {
   state: ProjectState,
   inputFile?: S3Location,
   outputFile?: S3Location,
-  effectMetadata?: EffectMetadata,
+  cropTrackerOpts?: CropTrackerOpts,
 };
 
 type ProjectItem = {
@@ -74,7 +69,7 @@ export async function getProject({
       state: result.state,
       inputFile: result.inputFile,
       outputFile: result.outputFile,
-      effectMetadata: result.effectMetadata,
+      cropTrackerOpts: result.cropTrackerOpts,
     };
   }
   return null;
@@ -123,7 +118,7 @@ export async function createProject({
     state: result.state,
     inputFile: result.inputFile,
     outputFile: result.outputFile,
-    effectMetadata: result.effectMetadata,
+    cropTrackerOpts: result.cropTrackerOpts,
   };
 }
 
@@ -132,8 +127,7 @@ export async function updateProject({
   userId,
   inputFile,
   outputFile,
-  effectMetadata,
-}: Pick<Project, "id" | "userId" | "inputFile" | "outputFile" | "effectMetadata">): Promise<Project> {
+}: Pick<Project, "id" | "userId" | "inputFile" | "outputFile">): Promise<Project> {
   const db = await arc.tables();
   const existingProj = await db.project.get({ pk: userId, sk: idToSk(id) });
   
@@ -145,7 +139,7 @@ export async function updateProject({
     ...existingProj,
     inputFile: inputFile ?? existingProj.inputFile,
     outputFile: outputFile ?? existingProj.outputFile,
-    effectMetadata: effectMetadata ?? existingProj.effectMetadata,
+    cropTrackerOpts: existingProj.cropTrackerOpts
   });
   
   return {
@@ -156,7 +150,74 @@ export async function updateProject({
     state: result.state,
     inputFile: result.inputFile,
     outputFile: result.outputFile,
-    effectMetadata: result.effectMetadata,
+    cropTrackerOpts: result.cropTrackerOpts,
+  };
+}
+
+export async function updateCropTrackerOptsProject({
+  id,
+  userId,
+  cropTrackerOpts,
+}: Pick<Project, "id" | "userId" | "cropTrackerOpts">): Promise<Project> {
+  const db = await arc.tables();
+  const existingProj = await db.project.get({ pk: userId, sk: idToSk(id) });
+  
+  if (!existingProj) {
+    throw Error(`Project ${id} does not exist.`)
+  }
+
+  const result = await db.project.put({
+    ...existingProj,
+    cropTrackerOpts: {
+      ...existingProj.cropTrackerOpts,
+      ...cropTrackerOpts,
+    }
+  });
+  
+  return {
+    id: skToId(result.sk),
+    userId: result.pk,
+    title: result.title,
+    size: result.size,
+    state: result.state,
+    inputFile: result.inputFile,
+    outputFile: result.outputFile,
+    cropTrackerOpts: result.cropTrackerOpts,
+  };
+}
+
+
+export async function addProjectTrackHints({
+  id,
+  userId,
+}: Pick<Project, "id" | "userId">, trackHint: TrackHint): Promise<Project> {
+  const db = await arc.tables();
+  const existingProj = await db.project.get({ pk: userId, sk: idToSk(id) });
+  
+  if (!existingProj) {
+    throw Error(`Project ${id} does not exist.`)
+  }
+
+  const updatedProject = Object.assign({}, existingProj)
+  if (!updatedProject.cropTrackerOpts) {
+    updatedProject.cropTrackerOpts = {}
+  } 
+  if (updatedProject.cropTrackerOpts.trackHints) {
+    updatedProject.cropTrackerOpts.trackHints.push(trackHint)
+  } else {
+    updatedProject.cropTrackerOpts.trackHints = [trackHint]
+  }
+  const result = await db.project.put(updatedProject);
+  
+  return {
+    id: skToId(result.sk),
+    userId: result.pk,
+    title: result.title,
+    size: result.size,
+    state: result.state,
+    inputFile: result.inputFile,
+    outputFile: result.outputFile,
+    cropTrackerOpts: result.cropTrackerOpts,
   };
 }
 
