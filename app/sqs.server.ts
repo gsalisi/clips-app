@@ -2,6 +2,7 @@ import AWS, { SQS } from "aws-sdk";
 import { bool } from "aws-sdk/clients/signer";
 import cuid from "cuid";
 import path from "node:path";
+import { TrackHint } from "./models/project.server";
 
 // This is in camel-case because this is consumed in the python code
 type CropperSQSPayload = {
@@ -14,28 +15,30 @@ type CropperSQSPayload = {
   padding_ratio: number;
   smoothing_window_secs: number;
   exclude_limbs: bool;
+  track_hints?: TrackHint[];
 };
 
-type TrackerSQSPayload = {
-    type: "track";
-    bucket: string;
-    input_key: string;
-    track_dest: string;
-    track_preview_dir: string;
-};
+// type TrackerSQSPayload = {
+//     type: "track";
+//     bucket: string;
+//     input_key: string;
+//     track_dest: string;
+//     track_preview_dir: string;
+// };
 
 const QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/872511653058/cropper_queue-a871fe0.fifo"
 
 // TODO: Use explicit dedupe id for project ?
 export const sendSqsMessage = async (
-  payload: CropperSQSPayload | TrackerSQSPayload
+  payload: CropperSQSPayload
 ): Promise<SQS.SendMessageResult> => {
   for (let value of Object.values(payload)) {
     if (!value) {
       throw Error(`All parameters required. ${value} does not exist.`);
     }
   }
-
+  const body = JSON.stringify(payload)
+  console.log(body)
   const params = {
     MessageAttributes: {
       Action: {
@@ -43,7 +46,7 @@ export const sendSqsMessage = async (
         StringValue: payload.type,
       },
     },
-    MessageBody: JSON.stringify(payload),
+    MessageBody: body,
     MessageDeduplicationId: cuid(), // Required for FIFO queues
     MessageGroupId: "Group1", // Required for FIFO queues
     QueueUrl: QUEUE_URL,

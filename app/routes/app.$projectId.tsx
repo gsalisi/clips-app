@@ -22,14 +22,14 @@ export default function ProjectPage(props: { "": any; }) {
   const data = useLoaderData<typeof loader>();
   const location = useLocation();
   
-  let didUpload = true, didOptions, didPreview = false
+  let didUpload = true, didPreview = false
   if (location.pathname.endsWith("preview")) {
     didUpload = true;
-    didOptions = true;
+    // didOptions = true;
     didPreview = true
   } else if (location.pathname.endsWith("options")) {
     didUpload = true;
-    didOptions = true;
+    // didOptions = true;
   }
   
   return (
@@ -38,8 +38,8 @@ export default function ProjectPage(props: { "": any; }) {
         <h2 className="text-2xl font-bold my-2 indent-1">{data.project.title}</h2>
         <div className="divider"></div>
         <ul className="steps w-full">
-          <li className={classNames("step", { "step-primary": didUpload })}>Upload Clip</li>
-          <li className={classNames("step", { "step-primary": didOptions })}>Edit Options</li>
+          <li className={classNames("step", { "step-primary": didUpload })}>Fill out form</li>
+          {/* <li className={classNames("step", { "step-primary": didOptions })}>Edit Options</li> */}
           <li className={classNames("step", { "step-primary": didPreview })}>Preview</li>
         </ul>
         <div>
