@@ -17,7 +17,7 @@ export type S3Location = {
 
 export type TrackHint = {
   timeSecs: float
-  norm_ltwh: [float, float, float, float]
+  normLtwh: [float, float, float, float]
 }
 
 export type CropTrackerOpts = {

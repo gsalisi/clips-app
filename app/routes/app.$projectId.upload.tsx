@@ -292,7 +292,7 @@ export default function ProjectPage() {
         // console.log(prevStartX, prevStartY, prevWidth, prevHeight)
         ctx.strokeRect(prevStartX, prevStartY, prevWidth, prevHeight);
         setTrackHint({
-          norm_ltwh: [prevStartX / dims.width, prevStartY / dims.height, prevWidth / dims.width, prevHeight / dims.height],
+          normLtwh: [prevStartX / dims.width, prevStartY / dims.height, prevWidth / dims.width, prevHeight / dims.height],
           timeSecs: video.currentTime,
         })
         // setCurrentVideoTime(video.currentTime)

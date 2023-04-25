@@ -32,11 +32,11 @@ const QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/872511653058/cropper_queu
 export const sendSqsMessage = async (
   payload: CropperSQSPayload
 ): Promise<SQS.SendMessageResult> => {
-  for (let value of Object.values(payload)) {
-    if (!value) {
-      throw Error(`All parameters required. ${value} does not exist.`);
-    }
-  }
+  // for (let [key, value] of Object.entries(payload)) {
+  //   if (key !== "trackHints" && !value) {
+  //     throw Error(`All parameters required. ${value} does not exist.`);
+  //   }
+  // }
   const body = JSON.stringify(payload)
   console.log(body)
   const params = {
