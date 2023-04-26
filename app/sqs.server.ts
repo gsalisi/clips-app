@@ -26,7 +26,7 @@ type CropperSQSPayload = {
 //     track_preview_dir: string;
 // };
 
-const QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/872511653058/cropper_queue-a871fe0.fifo"
+const QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/872511653058/cropper_queue-4f01062"
 
 // TODO: Use explicit dedupe id for project ?
 export const sendSqsMessage = async (
@@ -47,8 +47,8 @@ export const sendSqsMessage = async (
       },
     },
     MessageBody: body,
-    MessageDeduplicationId: cuid(), // Required for FIFO queues
-    MessageGroupId: "Group1", // Required for FIFO queues
+    // MessageDeduplicationId: cuid(), // Required for FIFO queues
+    // MessageGroupId: "Group1", // Required for FIFO queues
     QueueUrl: QUEUE_URL,
   };
   const sqs = new AWS.SQS({ apiVersion: "2012-11-05" });
