@@ -1,7 +1,5 @@
 import arc from "@architect/functions";
-import { float } from "aws-sdk/clients/lightsail";
 import cuid from "cuid";
-import invariant from "tiny-invariant";
 
 import type { User } from "./user.server";
 
@@ -16,8 +14,8 @@ export type S3Location = {
 }
 
 export type TrackHint = {
-  timeSecs: float
-  normLtwh: [float, float, float, float]
+  timeSecs: number
+  normLtwh: [number, number, number, number]
 }
 
 export type CropTrackerOpts = {
@@ -28,9 +26,10 @@ export type CropTrackerOpts = {
 }
 
 export enum ProjectState {
-  Started = "Started",
-  Processing = "Processing",
-  Completed = "Completed",
+  Created,
+  Ready,
+  Processing,
+  Completed,
 }
 
 export type Project = {
@@ -98,17 +97,12 @@ export async function createProject({
 }: Pick<Project, "size" | "title" | "userId">): Promise<Project> {
   const db = await arc.tables();
 
-  console.log({
-    pk: userId,
-    sk: idToSk(cuid()),
-    title: title,
-    size: size,
-  })
   const result = await db.project.put({
     pk: userId,
     sk: idToSk(cuid()),
     title: title,
     size: size,
+    state: ProjectState.Created,
   });
   return {
     id: skToId(result.sk),
@@ -220,6 +214,35 @@ export async function addProjectTrackHints({
     cropTrackerOpts: result.cropTrackerOpts,
   };
 }
+
+export async function updateProjectState({
+  id,
+  userId,
+  state,
+}: Pick<Project, "id" | "userId" | "state">): Promise<Project> {
+  const db = await arc.tables();
+  const existingProj = await db.project.get({ pk: userId, sk: idToSk(id) });
+  
+  if (!existingProj) {
+    throw Error(`Project ${id} does not exist.`)
+  }
+
+  const updatedProject = Object.assign({}, existingProj)
+  updatedProject.state = state
+  const result = await db.project.put(updatedProject);
+  
+  return {
+    id: skToId(result.sk),
+    userId: result.pk,
+    title: result.title,
+    size: result.size,
+    state: result.state,
+    inputFile: result.inputFile,
+    outputFile: result.outputFile,
+    cropTrackerOpts: result.cropTrackerOpts,
+  };
+}
+
 
 export async function deleteProject({ id, userId }: Pick<Project, "id" | "userId">) {
   const db = await arc.tables();
