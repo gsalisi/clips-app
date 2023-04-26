@@ -76,7 +76,7 @@ export async function getProject({
 
 export async function getProjectListItems({
   userId,
-}: Pick<Project, "userId">): Promise<Array<Pick<Project, "id" | "title">>> {
+}: Pick<Project, "userId">): Promise<Array<Pick<Project, "id" | "title" | "state">>> {
   const db = await arc.tables();
 
   const result = await db.project.query({
@@ -86,6 +86,7 @@ export async function getProjectListItems({
 
   return result.Items.map((n: any) => ({
     title: n.title,
+    state: n.state,
     id: skToId(n.sk),
   }));
 }
