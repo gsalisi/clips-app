@@ -65,7 +65,7 @@ export default function ProjectsPage() {
     });
   }
   return (
-    <div className="flex h-full w-full justify-center bg-gray-50">
+    <div className="flex w-full justify-center bg-gray-50">
       <div className="h-full w-full max-w-lg bg-gray-50">
         <div className="flex justify-between py-4">
           <h2 className="text-slate mx-4 my-auto text-xl font-bold">

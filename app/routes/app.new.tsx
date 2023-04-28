@@ -124,7 +124,7 @@ export default function ProjectsPage() {
             <span className="m label-text">1:1 - 720x720 - Box</span>
           </label>
           <button type="submit" className="btn-primary btn my-1">Create Project</button>
-          <button onClick={() => history.back()} className="btn-secondary btn my-1">Cancel</button>
+          <button onClick={() => history.back()} className="btn my-1">Cancel</button>
         </Form>  
       </div>
     </div>
