@@ -2,6 +2,7 @@ import type { LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import AWS from "aws-sdk";
 import { requireUserId } from "~/session.server";
+import { getS3KeyExt, getS3KeyFileName } from "~/sqs.server";
 
 
 export async function loader({ request }: LoaderArgs) {
@@ -21,6 +22,7 @@ export async function loader({ request }: LoaderArgs) {
         Bucket: bucket,
         Key: key,
         Expires: 300,
+        ResponseContentDisposition: `attachment; filename="${getS3KeyFileName(key)}.${getS3KeyExt(key)}"`
     }
     const s3 = new AWS.S3()
     try {

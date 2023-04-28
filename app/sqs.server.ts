@@ -68,3 +68,7 @@ export const sendSqsMessage = async (
 export const getS3KeyFileName = (key: string): string => {
   return path.parse(key).name;
 };
+
+export const getS3KeyExt = (key: string): string => {
+  return path.parse(key).ext;
+};

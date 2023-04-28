@@ -235,9 +235,9 @@ export default function ProjectPage() {
 
   useEffect(() => {
     if (videoRef.current && data.project.cropTrackerOpts?.trackHints) {
-      setNumOfPersonSelectValue("multi")
-      setReadyToProcess(true)
-      setHasAddedFocus(true)
+      setNumOfPersonSelectValue("multi");
+      setReadyToProcess(true);
+      setHasAddedFocus(true);
     }
   }, [data, videoRef]);
 
@@ -347,6 +347,11 @@ export default function ProjectPage() {
           autoUpload={true}
           disabled={uploadState !== UploadState.Idle}
         />
+        {uploadState === UploadState.Uploading &&
+          <label className="label">
+            Please stay on this page until the file is uploaded ...
+          </label>
+        }
         <progress
           className="progress progress-success w-full"
           value={uploadPercent}
@@ -404,7 +409,9 @@ export default function ProjectPage() {
                   <FrameAnnotation
                     video={videoRef.current}
                     addFocus={addFocus}
-                    existingTrackHints={data.project.cropTrackerOpts?.trackHints}
+                    existingTrackHints={
+                      data.project.cropTrackerOpts?.trackHints
+                    }
                   ></FrameAnnotation>
                 )}
                 <button
@@ -422,8 +429,14 @@ export default function ProjectPage() {
         )}
         <div className="divider"></div>
         <h3 className="mt-0">3. Voila! See results. </h3>
+       
         {data.project.state >= 2 && (
           <>
+            {data.project.state !== 3 &&  
+              <label className="label">
+                You can leave this page while your video is processing...
+              </label>
+            }
             <ProjectPreview
               project={data.project}
               revalidator={revalidator}
