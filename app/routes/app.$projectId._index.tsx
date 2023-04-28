@@ -364,21 +364,9 @@ export default function ProjectPage() {
           <div className="w-full">
             {inputSignedUrl && (
               <>
-                <label className="label">
-                  <span className="label-text">{"Input Video Preview"}</span>
-                </label>
-                <div className="flex flex-col">
-                  <video
-                    ref={videoRef}
-                    className="m-0 max-h-96 max-w-full"
-                    controls
-                  >
-                    <source src={inputSignedUrl} />
-                  </video>
-                </div>
                 <div className="flex justify-between py-2">
                   <select
-                    className="max-w-s select-bordered select w-full"
+                    className="max-w-s select-bordered select-primary select-lg select w-full"
                     name="numOfPerson"
                     value={numOfPersonSelectValue}
                     onChange={selectNumPerson}
@@ -388,7 +376,7 @@ export default function ProjectPage() {
                       Are there multiple people in the video?
                     </option>
                     <option value="multi">
-                      Yes, I will identify the focus of the video.
+                      Yes
                     </option>
                     <option value="single">No, just one.</option>
                   </select>
@@ -405,6 +393,20 @@ export default function ProjectPage() {
                     />
                   </label> */}
                 </div>
+                <label className="label">
+                  <span className="label-text">{"Input Video Preview"}</span>
+                </label>
+                <div className="flex flex-col">
+                  <video
+                    ref={videoRef}
+                    className="m-0 max-h-96 max-w-full"
+                    controls
+                    autoPlay
+                  >
+                    <source src={inputSignedUrl} />
+                  </video>
+                </div>
+                
                 {showFrameAnnotation && videoRef.current && (
                   <FrameAnnotation
                     video={videoRef.current}
