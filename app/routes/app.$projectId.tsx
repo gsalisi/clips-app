@@ -22,13 +22,11 @@ export default function ProjectPage(props: { "": any; }) {
   const data = useLoaderData<typeof loader>();
   
   return (
-    <div className="flex justify-center h-full w-full bg-gray-50">
-      <div className="flex-row justify-center h-full w-full max-w-xl p-6">
-        <h2 className="text-2xl font-bold my-2 indent-1">{data.project.title}</h2>
-        <div className="divider"></div>
-        <div>
-          <Outlet/>
-        </div>
+    <div className="flex justify-center w-full bg-gray-50">
+      <div className="flex justify-center w-full max-w-xl p-6">
+        {/* <h2 className="text-2xl font-bold my-2 indent-1">{data.project.title}</h2>
+        <div className="divider"></div> */}
+        <Outlet/>
       </div>
     </div>
   );
