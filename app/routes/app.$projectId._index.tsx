@@ -183,6 +183,8 @@ export const action = async ({ params, request }: ActionArgs) => {
 
     const response = await sendSqsMessage({
       type: "crop",
+      user_id: updatedProject.userId,
+      project_id: updatedProject.id,
       input_key: updatedProject.inputFile.key,
       output_key: updatedProject.outputFile.key,
       bucket: updatedProject.inputFile.bucket,

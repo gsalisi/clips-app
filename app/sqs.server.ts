@@ -7,6 +7,8 @@ import { TrackHint } from "./models/project.server";
 // This is in camel-case because this is consumed in the python code
 type CropperSQSPayload = {
   type: "crop";
+  project_id: string;
+  user_id: string;
   bucket: string;
   input_key: string;
   output_key: string;
