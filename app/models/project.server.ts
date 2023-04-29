@@ -30,6 +30,7 @@ export enum ProjectState {
   Ready,
   Processing,
   Completed,
+  Error,
 }
 
 export type Project = {
