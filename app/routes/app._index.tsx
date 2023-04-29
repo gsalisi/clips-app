@@ -16,7 +16,7 @@ import {
 import { requireUserId } from "~/session.server";
 import { useUser } from "~/utils";
 
-export const meta: V2_MetaFunction = () => [{ title: "Clips App" }];
+export const meta: V2_MetaFunction = () => [{ title: "PopCrop" }];
 
 export const loader = async ({ request }: LoaderArgs) => {
   const userId = await requireUserId(request);

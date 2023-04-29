@@ -1,4 +1,4 @@
-# Clips App
+# Pop Crop App
 
 
 ## What's in the stack

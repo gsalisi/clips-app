@@ -7,7 +7,7 @@ import { Form, useActionData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 import classNames from "classnames";
 
-export const meta: V2_MetaFunction = () => [{ title: "Clips - New Project" }];
+export const meta: V2_MetaFunction = () => [{ title: "PopCrop - New Project" }];
 
 enum AspectRatio {
   TallPortrait = "tall_portrait",
@@ -30,16 +30,16 @@ export const action = async ({ request }: ActionArgs) => {
 
   const sizes: { [key in AspectRatio]: Size } = {
     [AspectRatio.TallPortrait]: {
-      width: 720,
-      height: 1280,
+      width: 1080,
+      height: 1920,
     },
     [AspectRatio.Portrait]: {
-      width: 720,
-      height: 960,
+      width: 1080,
+      height: 1440,
     },
     [AspectRatio.Box]: {
-      width: 720,
-      height: 720,
+      width: 1080,
+      height: 1080,
     },
   };
 
@@ -72,7 +72,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="flex h-full w-full justify-center bg-gray-50">
-      <div className="h-full w-full max-w-xl py-2">
+      <div className="h-full w-full max-w-lg py-2">
         <Form method="post" className="form-control p-2">
           <label className="label">
             <span className="label-text" >Project Title</span>
@@ -98,7 +98,7 @@ export default function ProjectsPage() {
               value={AspectRatio.TallPortrait}
             />
             <span className="label-text">
-              9:16 - 720x1280 - Best for TikTok / Reels / Shorts
+              9:16 - 1080x1920 - Best for TikTok / Reels / Shorts
             </span>
           </label>
           <label className="label cursor-pointer justify-normal space-x-2">
@@ -110,7 +110,7 @@ export default function ProjectsPage() {
               checked={aspectRatio === AspectRatio.Portrait}
               value={AspectRatio.Portrait}
             />
-            <span className="m label-text">3:4 - 720x960 - Portrait</span>
+            <span className="m label-text">3:4 - 1080x1440 - Portrait</span>
           </label>
           <label className="label cursor-pointer justify-normal space-x-2">
             <input
@@ -121,7 +121,7 @@ export default function ProjectsPage() {
               checked={aspectRatio === AspectRatio.Box}
               value={AspectRatio.Box}
             />
-            <span className="m label-text">1:1 - 720x720 - Box</span>
+            <span className="m label-text">1:1 - 1080x1080 - Box</span>
           </label>
           <button type="submit" className="btn-primary btn my-1">Create Project</button>
           <button onClick={() => history.back()} className="btn my-1">Cancel</button>

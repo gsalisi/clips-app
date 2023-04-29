@@ -226,7 +226,7 @@ export default function FrameAnnotation({
   }
 
   return (
-    <div className="form-control w-full max-w-lg">
+    <div className="w-full max-w-lg">
       <label className="label">
         <span className="label-text">{"Click on the person that you want to crop in to:"}</span>
       </label>
@@ -239,7 +239,7 @@ export default function FrameAnnotation({
       </div>
       
       <button
-        className="btn-s m btn-primary btn m-2"
+        className="btn-s min-w-full btn-primary btn my-2"
         onClick={addLastTrackHint}
         disabled={!lastTrackHint || !canAddHint}
       >

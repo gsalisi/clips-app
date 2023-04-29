@@ -25,6 +25,7 @@ import classNames from "classnames";
 import { signGetObjectUrl } from "~/s3.server";
 import ProjectPreview from "~/components/ProjectPreview";
 import FrameAnnotation from "~/components/FrameAnnotation";
+import { LoadingSpinner } from "~/components/Icons";
 
 enum ProjectFormAction {
   uploadFile,
@@ -32,7 +33,7 @@ enum ProjectFormAction {
   sendProcessRequest,
 }
 
-export const meta: V2_MetaFunction = () => [{ title: "Clips App" }];
+export const meta: V2_MetaFunction = () => [{ title: "PopCrop" }];
 
 export const loader = async ({ params, request }: LoaderArgs) => {
   const userId = await requireUserId(request);
@@ -364,7 +365,12 @@ export default function ProjectPage() {
           <div className="w-full">
             {inputSignedUrl && (
               <>
-                <div className="flex justify-between py-2">
+                <div className="flex-row justify-between py-2">
+                  <label className="label">
+                    <span className="label-txt">
+                      Are there multiple people in the video?
+                    </span>
+                  </label>
                   <select
                     className="max-w-s select-bordered select-primary select-lg select w-full"
                     name="numOfPerson"
@@ -373,7 +379,7 @@ export default function ProjectPage() {
                     // disabled={data.project.state >= 2}
                   >
                     <option value="" disabled>
-                      Are there multiple people in the video?
+                      Select answer...
                     </option>
                     <option value="multi">
                       Yes
@@ -401,7 +407,7 @@ export default function ProjectPage() {
                     ref={videoRef}
                     className="m-0 max-h-96 max-w-full"
                     controls
-                    autoPlay
+                    autoPlay={data.project.state <= 2}
                   >
                     <source src={inputSignedUrl} />
                   </video>
@@ -431,13 +437,16 @@ export default function ProjectPage() {
         )}
         <div className="divider"></div>
         <h3 className="mt-0">3. Voila! See results. </h3>
-       
+        
         {data.project.state >= 2 && (
           <>
-            {data.project.state !== 3 &&  
-              <label className="label">
-                You can leave this page while your video is processing...
-              </label>
+            {data.project.state !== 3 &&
+              <> 
+                <LoadingSpinner/>
+                <label className="label">
+                  You can leave this page while your video is processing...
+                </label>
+              </>
             }
             <ProjectPreview
               project={data.project}

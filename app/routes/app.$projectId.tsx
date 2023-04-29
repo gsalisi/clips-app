@@ -5,7 +5,7 @@ import invariant from "tiny-invariant";
 import { getProject } from "~/models/project.server";
 import classNames from "classnames";
 
-export const meta: V2_MetaFunction = () => [{ title: "Clips App" }];
+export const meta: V2_MetaFunction = () => [{ title: "PopCrop" }];
 
 export const loader = async ({ params, request }: LoaderArgs) => {
   const userId = await requireUserId(request);
