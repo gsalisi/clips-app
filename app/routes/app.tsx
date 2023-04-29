@@ -3,7 +3,7 @@ import { Form, Link, Outlet } from "@remix-run/react";
 import { useOptionalUser } from "~/utils";
 import { UserIcon } from "@heroicons/react/24/solid";
 
-export const meta: V2_MetaFunction = () => [{ title: "Clips App" }];
+export const meta: V2_MetaFunction = () => [{ title: "PopCrop" }];
 
 export default function IndexPage() {
   const user = useOptionalUser();
@@ -11,9 +11,9 @@ export default function IndexPage() {
   return (
     <div className="flex h-full min-h-screen flex-col">
       <header className="bg-grey-800 w-full p-4 text-white">
-        <div className="m-auto flex h-full w-full max-w-xl items-center justify-stretch py-2">
+        <div className="m-auto flex h-full w-full max-w-lg items-center justify-stretch py-2">
           <Link className="flex-1 prose" to="/app">
-            <h1 >Clips</h1>
+            <h1 >PopCrop</h1>
           </Link>
           <div className="full-width flex justify-end space-x-2">
             {user && (
@@ -50,7 +50,7 @@ export default function IndexPage() {
           </div>
         </div>
       </header>
-      <main className="flex h-full bg-white">
+      <main className="flex min-h-full bg-white">
         <Outlet />
       </main>
       {/* <footer className="footer items-center bg-neutral p-4 text-neutral-content">

@@ -4,7 +4,7 @@ import { useFetcher } from "@remix-run/react";
 import { useOptionalUser } from "~/utils";
 import { useEffect, useState } from "react";
 
-export const meta: V2_MetaFunction = () => [{ title: "Clips App" }];
+export const meta: V2_MetaFunction = () => [{ title: "PopCrop" }];
 
 export default function ProjectsPage() {
   const listObjectsFetcher = useFetcher();
