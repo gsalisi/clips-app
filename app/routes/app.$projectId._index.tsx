@@ -263,7 +263,7 @@ export default function ProjectPage() {
     uploadedObjUrlFetcher.data = undefined;
     uploadedObjUrlFetcher.load(`/s3/getobjecturl?${params.toString()}`);
     // if (inputComp) {
-    //   inputComp.disabled = true;
+    //   inputComp.disabled = true; 
     // }
     // setInputFile({
     //   key: res.key,
@@ -293,6 +293,7 @@ export default function ProjectPage() {
     }
     if (e.target.value === "multi" && !hasAddedFocus) {
       setReadyToProcess(false);
+      videoRef.current?.pause()
     }
   };
 
