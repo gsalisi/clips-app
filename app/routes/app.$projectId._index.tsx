@@ -3,6 +3,7 @@ import { json, redirect } from "@remix-run/node";
 import ReactS3Uploader from "react-s3-uploader";
 import {
   Form,
+  Link,
   useFetcher,
   useLoaderData,
   useRevalidator,
@@ -159,6 +160,7 @@ export const action = async ({ params, request }: ActionArgs) => {
     );
   } else if (parseInt(projectAction) === ProjectFormAction.sendProcessRequest) {
     console.log("====> Sending request to SQS...");
+    
     const cropTrackerOpts: CropTrackerOpts = {
       excludeLimbs: true,
       paddingRatio: 1.2,
@@ -404,7 +406,7 @@ export default function ProjectPage() {
                     name="numOfPerson"
                     value={numOfPersonSelectValue}
                     onChange={selectNumPerson}
-                    // disabled={data.project.state >= 2}
+                    disabled={data.project.state >= 2}
                   >
                     <option value="" disabled>
                       Select answer...
@@ -435,7 +437,6 @@ export default function ProjectPage() {
                         ref={onVideoRefSet}
                         className="m-0 max-h-96 max-w-full"
                         controls
-                        autoPlay={data.project.state <= 2}
                       >
                         <source src={inputSignedUrl} />
                       </video>
@@ -464,12 +465,12 @@ export default function ProjectPage() {
             )}
           </div>
         )}
-        <div className="divider"></div>
-        <h3 className="mt-0">3. Voila! See results. </h3>
+        <div className="divider"></div>    
 
         {data.project.state >= 2 && (
           <>
-            {data.project.state !== 3 && (
+            <h3 className="mt-0">3. Download video here </h3>
+            {data.project.state === 2 && (
               <>
                 <LoadingSpinner />
                 <label className="label">
@@ -482,10 +483,17 @@ export default function ProjectPage() {
                 )}
               </>
             )}
-            <ProjectPreview
-              project={data.project}
-              revalidator={revalidator}
-            ></ProjectPreview>
+            {data.project.state === 3 && (
+              <ProjectPreview
+                project={data.project}
+                revalidator={revalidator}
+              ></ProjectPreview>
+            )}
+            {data.project.state === 4 && (
+              <p className="text-red-700">
+                Sorry! Something went wrong. Please try again in a <Link to="/app/new">new project</Link>.
+              </p>
+            )}
           </>
         )}
         <div className="divider"></div>
