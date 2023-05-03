@@ -63,9 +63,6 @@ export default function ProjectPreview({ project, revalidator }: { project: Proj
       <div className="flex-col w-full max-w-lg">
         {outputUrl && (
           <>
-             <label className="label">
-              <span className="label-text">{"Output Preview"}</span>
-            </label>
             <div className="w-full max-w-lg">
               <div className="flex flex-col">
                 <video className="m-0 max-h-96 max-full-w" controls>
