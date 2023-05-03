@@ -353,7 +353,12 @@ export default function ProjectPage() {
         />
         {uploadState === UploadState.Uploading &&
           <label className="label">
-            Please stay on this page until the file is uploaded ...
+            Please stay on this page until the file is uploaded...
+          </label>
+        }
+        {uploadState === UploadState.Complete &&
+          <label className="label">
+            Files uploaded and generated will only be stored for 24 hours.
           </label>
         }
         <progress

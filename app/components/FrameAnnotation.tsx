@@ -67,7 +67,7 @@ export default function FrameAnnotation({
       overlay.width = dims.width;
       overlay.height = dims.height;
 
-      boxSize = Math.floor(Math.min(dims.width, dims.height) / 6);
+      boxSize = Math.floor(Math.min(dims.width, dims.height) / 8);
 
       // style the context
       ctx.strokeStyle = "cyan";
@@ -247,6 +247,7 @@ export default function FrameAnnotation({
           {"Click on the person that you want to crop in to:"}
         </span>
       </label>
+      
       <div className="relative">
         <canvas
           ref={overlayRef}
@@ -254,7 +255,11 @@ export default function FrameAnnotation({
         ></canvas>
         <canvas ref={canvasRef}></canvas>
       </div>
-
+      <label className="label">
+        <span className="label-text">
+        Tip: You can scrub the video above to show a frame where the person is most visible.
+        </span>
+      </label>
       <button
         className="btn-s btn-primary btn my-2 min-w-full"
         onClick={addLastTrackHint}
