@@ -33,7 +33,7 @@ export default function App() {
       </head>
       <body className="h-full">
         <Outlet />
-        <ScrollRestoration />
+        <ScrollRestoration getKey={(loc) => loc.pathname} />
         <Scripts />
         <LiveReload />
       </body>

@@ -1,5 +1,5 @@
 import type { V2_MetaFunction } from "@remix-run/node";
-import { Form, Link, Outlet } from "@remix-run/react";
+import { Form, Link, Outlet, useSubmit } from "@remix-run/react";
 import { useOptionalUser } from "~/utils";
 import { UserIcon } from "@heroicons/react/24/solid";
 
@@ -7,20 +7,14 @@ export const meta: V2_MetaFunction = () => [{ title: "PopCrop" }];
 
 export default function IndexPage() {
   const user = useOptionalUser();
-
   return (
     <div className="flex h-full min-h-screen flex-col">
       <header className="bg-grey-800 w-full p-4 text-white">
         <div className="m-auto flex h-full w-full max-w-lg items-center justify-stretch py-2">
-          <Link className="flex-1 prose" to="/app">
-            <h1 >PopCrop</h1>
+          <Link className="prose flex-1" to="/app">
+            <h1>PopCrop</h1>
           </Link>
           <div className="full-width flex justify-end space-x-2">
-            {user && (
-              <div className="flex items-center prose">
-                <p>{user.email}</p>
-              </div>
-            )}
             {!user && (
               <Link
                 to="/app/login"
@@ -38,14 +32,26 @@ export default function IndexPage() {
               </Link>
             )}
             {user && (
-              <Form action="/logout" method="post">
-                <button
-                  type="submit"
-                  className="rounded-full bg-slate-600 px-2 py-2 text-blue-100 hover:bg-blue-500 active:bg-blue-600"
-                >
+              <div className="dropdown-end dropdown">
+                <button className="rounded-full bg-slate-600 px-2 py-2 text-blue-100 hover:bg-blue-500 active:bg-blue-600">
                   <UserIcon className="h-4 w-4 text-white" title={user.email} />
                 </button>
-              </Form>
+                <Form action="/logout" method="post">
+                    <ul
+                    tabIndex={0}
+                    className="dropdown-content menu w-52 bg-base-100 p-2 shadow"
+                    >
+                    <li>
+                        <button type="submit" className="text-red-700">
+                            Logout
+                        </button>
+                    </li>
+                    <li>
+                        <span className="text-neutral" > {user.email} </span>
+                    </li>
+                    </ul>
+                </Form>
+              </div>
             )}
           </div>
         </div>

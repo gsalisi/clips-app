@@ -8,7 +8,7 @@ import {
   useRevalidator,
   useSubmit,
 } from "@remix-run/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { requireUserId } from "~/session.server";
 import invariant from "tiny-invariant";
 import type { CropTrackerOpts, TrackHint } from "~/models/project.server";
@@ -26,6 +26,7 @@ import { signGetObjectUrl } from "~/s3.server";
 import ProjectPreview from "~/components/ProjectPreview";
 import FrameAnnotation from "~/components/FrameAnnotation";
 import { LoadingSpinner } from "~/components/Icons";
+import { add, formatDistance } from "date-fns";
 
 enum ProjectFormAction {
   uploadFile,
@@ -230,19 +231,27 @@ export default function ProjectPage() {
   const [readyToProcess, setReadyToProcess] = useState<boolean>(false);
   const [numOfPersonSelectValue, setNumOfPersonSelectValue] =
     useState<string>("");
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>();
   const revalidator = useRevalidator();
   const inputSignedUrl =
     (uploadedObjUrlFetcher.data && uploadedObjUrlFetcher.data.signedUrl) ||
     data.inputSignedUrl;
 
   useEffect(() => {
-    if (videoRef.current && data.project.cropTrackerOpts?.trackHints) {
+    if (videoRef && data.project.cropTrackerOpts?.trackHints) {
       setNumOfPersonSelectValue("multi");
       setReadyToProcess(true);
       setHasAddedFocus(true);
+    } else if (data.project.inputFile && data.project.state >= 2) {
+      setNumOfPersonSelectValue("single")
+      setReadyToProcess(true);
     }
+    
   }, [data, videoRef]);
+
+  const onVideoRefSet = useCallback((ref: HTMLVideoElement | null) => {
+    setVideoRef(ref);
+ }, []);
 
   const onUploadStart = (file: File, next: (f: File) => void) => {
     setUploadState(UploadState.Uploading);
@@ -263,7 +272,7 @@ export default function ProjectPage() {
     uploadedObjUrlFetcher.data = undefined;
     uploadedObjUrlFetcher.load(`/s3/getobjecturl?${params.toString()}`);
     // if (inputComp) {
-    //   inputComp.disabled = true; 
+    //   inputComp.disabled = true;
     // }
     // setInputFile({
     //   key: res.key,
@@ -293,7 +302,7 @@ export default function ProjectPage() {
     }
     if (e.target.value === "multi" && !hasAddedFocus) {
       setReadyToProcess(false);
-      videoRef.current?.pause()
+      videoRef?.pause();
     }
   };
 
@@ -321,6 +330,17 @@ export default function ProjectPage() {
     });
     revalidator.revalidate();
   };
+
+  let estimatedTimeToCompletion = "";
+  if (videoRef) {
+    const estimatedTimeToCompleteSecs = videoRef.duration * 10;
+    const lastModifiedDate = new Date(data.project.lastModifiedAt * 1000);
+    const currDate = new Date();
+    const estDate = add(lastModifiedDate, {
+      seconds: estimatedTimeToCompleteSecs,
+    });
+    estimatedTimeToCompletion = formatDistance(estDate, currDate);
+  }
 
   return (
     <div className="prose flex h-full w-full max-w-xl flex-col items-center p-2">
@@ -351,16 +371,16 @@ export default function ProjectPage() {
           autoUpload={true}
           disabled={uploadState !== UploadState.Idle}
         />
-        {uploadState === UploadState.Uploading &&
+        {uploadState === UploadState.Uploading && (
           <label className="label">
             Please stay on this page until the file is uploaded...
           </label>
-        }
-        {uploadState === UploadState.Complete &&
+        )}
+        {uploadState === UploadState.Complete && (
           <label className="label">
             Files uploaded and generated will only be stored for 24 hours.
           </label>
-        }
+        )}
         <progress
           className="progress progress-success w-full"
           value={uploadPercent}
@@ -380,7 +400,7 @@ export default function ProjectPage() {
                     </span>
                   </label>
                   <select
-                    className="max-w-s select-bordered select-primary select-lg select w-full"
+                    className="max-w-s select-bordered select-secondary select select-lg w-full"
                     name="numOfPerson"
                     value={numOfPersonSelectValue}
                     onChange={selectNumPerson}
@@ -389,9 +409,7 @@ export default function ProjectPage() {
                     <option value="" disabled>
                       Select answer...
                     </option>
-                    <option value="multi">
-                      Yes
-                    </option>
+                    <option value="multi">Yes</option>
                     <option value="single">No, just one.</option>
                   </select>
                   {/* <label className="label cursor-pointer justify-start space-x-1">
@@ -407,23 +425,26 @@ export default function ProjectPage() {
                     />
                   </label> */}
                 </div>
-                <label className="label">
-                  <span className="label-text">{"Input Video Preview"}</span>
-                </label>
-                <div className="flex flex-col">
-                  <video
-                    ref={videoRef}
-                    className="m-0 max-h-96 max-w-full"
-                    controls
-                    autoPlay={data.project.state <= 2}
-                  >
-                    <source src={inputSignedUrl} />
-                  </video>
-                </div>
-                
-                {showFrameAnnotation && videoRef.current && (
+                {numOfPersonSelectValue &&
+                  <>
+                    <label className="label">
+                      <span className="label-text">{"Input Video Preview"}</span>
+                    </label>
+                    <div className="flex flex-col">
+                      <video
+                        ref={onVideoRefSet}
+                        className="m-0 max-h-96 max-w-full"
+                        controls
+                        autoPlay={data.project.state <= 2}
+                      >
+                        <source src={inputSignedUrl} />
+                      </video>
+                    </div>
+                  </>
+                }
+                {showFrameAnnotation && videoRef && (
                   <FrameAnnotation
-                    video={videoRef.current}
+                    video={videoRef}
                     addFocus={addFocus}
                     existingTrackHints={
                       data.project.cropTrackerOpts?.trackHints
@@ -445,17 +466,22 @@ export default function ProjectPage() {
         )}
         <div className="divider"></div>
         <h3 className="mt-0">3. Voila! See results. </h3>
-        
+
         {data.project.state >= 2 && (
           <>
-            {data.project.state !== 3 &&
-              <> 
-                <LoadingSpinner/>
+            {data.project.state !== 3 && (
+              <>
+                <LoadingSpinner />
                 <label className="label">
                   You can leave this page while your video is processing...
                 </label>
+                {estimatedTimeToCompletion && (
+                  <label className="label">
+                    {`Estimated time to completion: ${estimatedTimeToCompletion}`}
+                  </label>
+                )}
               </>
-            }
+            )}
             <ProjectPreview
               project={data.project}
               revalidator={revalidator}

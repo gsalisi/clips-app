@@ -39,6 +39,9 @@ export type Project = {
   title: string;
   size: Size;
   state: ProjectState,
+  createdAt: number,
+  expiredAt: number,
+  lastModifiedAt: number,
   inputFile?: S3Location,
   outputFile?: S3Location,
   cropTrackerOpts?: CropTrackerOpts,
@@ -51,6 +54,8 @@ type ProjectItem = {
 
 const skToId = (sk: ProjectItem["sk"]): Project["id"] => sk.replace(/^project#/, "");
 const idToSk = (id: Project["id"]): ProjectItem["sk"] => `project#${id}`;
+
+const SECONDS_IN_AN_HOUR = 60 * 60;
 
 export async function getProject({
   id,
@@ -67,6 +72,9 @@ export async function getProject({
       title: result.title,
       size: result.size,
       state: result.state,
+      expiredAt: result.expiredAt,
+      createdAt: result.createdAt,
+      lastModifiedAt: result.lastModifiedAt,
       inputFile: result.inputFile,
       outputFile: result.outputFile,
       cropTrackerOpts: result.cropTrackerOpts,
@@ -77,7 +85,7 @@ export async function getProject({
 
 export async function getProjectListItems({
   userId,
-}: Pick<Project, "userId">): Promise<Array<Pick<Project, "id" | "title" | "state">>> {
+}: Pick<Project, "userId">): Promise<Array<Pick<Project, "id" | "title" | "state" | "createdAt" | "lastModifiedAt" | "expiredAt">>> {
   const db = await arc.tables();
 
   const result = await db.project.query({
@@ -85,11 +93,16 @@ export async function getProjectListItems({
     ExpressionAttributeValues: { ":pk": userId },
   });
 
-  return result.Items.map((n: any) => ({
+  const items = result.Items.map((n: any) => ({
     title: n.title,
     state: n.state,
     id: skToId(n.sk),
+    createdAt: n.createdAt,
+    lastModifiedAt: n.lastModifiedAt,
+    expiredAt: n.expiredAt,
   }));
+  items.sort((p1, p2) => (p2.lastModifiedAt || 0) - (p1.lastModifiedAt || 0))
+  return items
 }
 
 export async function createProject({
@@ -98,13 +111,19 @@ export async function createProject({
   userId,
 }: Pick<Project, "size" | "title" | "userId">): Promise<Project> {
   const db = await arc.tables();
-
+  
+  const creationTime = Math.round(Date.now() / 1000);
+  const expirationTime = creationTime + (48 * SECONDS_IN_AN_HOUR);
+  
   const result = await db.project.put({
     pk: userId,
     sk: idToSk(cuid()),
     title: title,
     size: size,
     state: ProjectState.Created,
+    expiredAt: expirationTime,
+    createdAt: creationTime,
+    lastModifiedAt: creationTime,
   });
   return {
     id: skToId(result.sk),
@@ -112,6 +131,9 @@ export async function createProject({
     title: result.title,
     size: result.size,
     state: result.state,
+    expiredAt: result.expiredAt,
+    createdAt: result.createdAt,
+    lastModifiedAt: result.lastModifiedAt,
     inputFile: result.inputFile,
     outputFile: result.outputFile,
     cropTrackerOpts: result.cropTrackerOpts,
@@ -130,12 +152,13 @@ export async function updateProject({
   if (!existingProj) {
     throw Error(`Project ${id} does not exist.`)
   }
-
+  const updateTime = Math.round(Date.now() / 1000);
   const result = await db.project.put({
     ...existingProj,
     inputFile: inputFile ?? existingProj.inputFile,
     outputFile: outputFile ?? existingProj.outputFile,
-    cropTrackerOpts: existingProj.cropTrackerOpts
+    cropTrackerOpts: existingProj.cropTrackerOpts,
+    lastModifiedAt: updateTime,
   });
   
   return {
@@ -144,6 +167,9 @@ export async function updateProject({
     title: result.title,
     size: result.size,
     state: result.state,
+    expiredAt: result.expiredAt,
+    createdAt: result.createdAt,
+    lastModifiedAt: result.lastModifiedAt,
     inputFile: result.inputFile,
     outputFile: result.outputFile,
     cropTrackerOpts: result.cropTrackerOpts,
@@ -161,13 +187,14 @@ export async function updateCropTrackerOptsProject({
   if (!existingProj) {
     throw Error(`Project ${id} does not exist.`)
   }
-
+  const updateTime = Math.round(Date.now() / 1000);
   const result = await db.project.put({
     ...existingProj,
     cropTrackerOpts: {
       ...existingProj.cropTrackerOpts,
       ...cropTrackerOpts,
-    }
+    },
+    lastModifiedAt: updateTime,
   });
   
   return {
@@ -176,6 +203,9 @@ export async function updateCropTrackerOptsProject({
     title: result.title,
     size: result.size,
     state: result.state,
+    expiredAt: result.expiredAt,
+    createdAt: result.createdAt,
+    lastModifiedAt: result.lastModifiedAt,
     inputFile: result.inputFile,
     outputFile: result.outputFile,
     cropTrackerOpts: result.cropTrackerOpts,
@@ -203,6 +233,8 @@ export async function addProjectTrackHints({
   } else {
     updatedProject.cropTrackerOpts.trackHints = [trackHint]
   }
+  const updateTime = Math.round(Date.now() / 1000);
+  updatedProject.lastModifiedAt = updateTime
   const result = await db.project.put(updatedProject);
   
   return {
@@ -211,6 +243,9 @@ export async function addProjectTrackHints({
     title: result.title,
     size: result.size,
     state: result.state,
+    expiredAt: result.expiredAt,
+    createdAt: result.createdAt,
+    lastModifiedAt: result.lastModifiedAt,
     inputFile: result.inputFile,
     outputFile: result.outputFile,
     cropTrackerOpts: result.cropTrackerOpts,
@@ -231,6 +266,7 @@ export async function updateProjectState({
 
   const updatedProject = Object.assign({}, existingProj)
   updatedProject.state = state
+  updatedProject.lastModifiedAt = Math.round(Date.now() / 1000);
   const result = await db.project.put(updatedProject);
   
   return {
@@ -239,6 +275,9 @@ export async function updateProjectState({
     title: result.title,
     size: result.size,
     state: result.state,
+    expiredAt: result.expiredAt,
+    createdAt: result.createdAt,
+    lastModifiedAt: result.lastModifiedAt,
     inputFile: result.inputFile,
     outputFile: result.outputFile,
     cropTrackerOpts: result.cropTrackerOpts,

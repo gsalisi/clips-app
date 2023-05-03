@@ -24,3 +24,4 @@ password
 project
   pk *String  # userId
   sk **String # noteId
+  expiredAt TTL
