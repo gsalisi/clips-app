@@ -10,9 +10,9 @@ export default function IndexPage() {
   return (
     <div className="flex h-full min-h-screen flex-col">
       <header className="bg-grey-800 w-full p-4 text-white">
-        <div className="m-auto flex h-full w-full max-w-lg items-center justify-stretch py-2">
+        <div className="m-auto flex h-full w-full max-w-lg items-center justify-stretch">
           <Link className="prose flex-1" to="/app">
-            <h1>PopCrop</h1>
+            <div className="w-12 h-12" style={{backgroundImage: "url(/_static/popcrop-icon.png)", backgroundSize: 'cover'}}></div>
           </Link>
           <div className="full-width flex justify-end space-x-2">
             {!user && (
