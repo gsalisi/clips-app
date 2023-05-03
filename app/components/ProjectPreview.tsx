@@ -73,6 +73,9 @@ export default function ProjectPreview({ project, revalidator }: { project: Proj
                 </video>
               </div>
             </div>
+            <label className="label">
+              Videos will only be available for 24 hours.
+            </label>
           </>
         )}
         <button className="btn my-2" onClick={downloadObject} disabled={!outputUrl}>

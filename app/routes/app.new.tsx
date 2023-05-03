@@ -98,7 +98,7 @@ export default function ProjectsPage() {
               value={AspectRatio.TallPortrait}
             />
             <span className="label-text">
-              9:16 - 1080x1920 - Best for TikTok / Reels / Shorts
+              9:16 - 1080x1920 - For TikTok / Reels
             </span>
           </label>
           <label className="label cursor-pointer justify-normal space-x-2">
