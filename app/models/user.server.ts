@@ -3,10 +3,16 @@ import bcrypt from "bcryptjs";
 import invariant from "tiny-invariant";
 import getUuidByString from "uuid-by-string";
 
-export type User = { id: string; email: string };
+export type User = { 
+  id: string; email: string;
+  picture: string;
+  provider: string;
+  providerID: string;
+  name: string; 
+};
 export type Password = { password: string };
 
-export async function getUserById(id: User["id"]): Promise<User | null> {
+export async function getUserById(id: User["id"]): Promise<Pick<User, "id" | "email"> | null> {
   const db = await arc.tables();
   const result = await db.user.query({
     KeyConditionExpression: "pk = :pk",
@@ -36,6 +42,36 @@ async function getUserPasswordByEmail(email: User["email"]) {
 }
 
 const dePlussedEmail = (email: string): string => email.split('@')[0].split('+')[0] + '@' + email.split('@')[1];
+
+export async function findOrCreate({
+  email,
+  picture,
+  provider,
+  providerID,
+  name,
+}: Pick<User, "email" | "picture" | "provider" | "providerID" | "name">) {
+  const cleanEmail = dePlussedEmail(email)
+  const user = await getUserByEmail(cleanEmail)
+  if (user) {
+    return user
+  }
+  
+  const db = await arc.tables();
+  const userId = getUuidByString(cleanEmail)
+  await db.user.put({
+    pk: userId,
+    email,
+    picture,
+    provider,
+    providerID,
+    name,
+  });
+
+  const newUser = await getUserByEmail(cleanEmail);
+  invariant(newUser, `User not found after being created. This should not happen`);
+
+  return newUser;
+}
 
 export async function createUser(
   email: User["email"],
