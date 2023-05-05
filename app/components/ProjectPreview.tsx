@@ -24,6 +24,7 @@ const fetchOutputUrl = async (project: Project) => {
 export default function ProjectPreview({ project, revalidator }: { project: Project, revalidator: ReturnType<typeof useRevalidator> }) {
   const [outputUrl, setOutputUrl] = useState<string>("");
   const [outputPollInterval, setOutputPollInterval] = useState<NodeJS.Timer>();
+  const [hasWebviewWarning, setHasWebViewWarning] = useState(false);
 
   useEffect(() => {
     if (outputPollInterval) {
@@ -42,8 +43,19 @@ export default function ProjectPreview({ project, revalidator }: { project: Proj
     }, 10000);
 
     setOutputPollInterval(interval);
+
+    const userAgent = window.navigator.userAgent.toLowerCase(),
+    safari = /safari/.test( userAgent ),
+    ios = /iphone|ipod|ipad/.test( userAgent );
+
+    if( ios ) {
+        if ( !safari ) {
+          setHasWebViewWarning(true)
+        }
+    }
     return () => clearInterval(interval);
   }, []);
+
 
   const downloadObject = async () => {
     if (!project.outputFile) {
@@ -58,11 +70,12 @@ export default function ProjectPreview({ project, revalidator }: { project: Proj
     window.open(resJson.signedUrl, "_blank");
   };
 
+  
   return (
     <>
       {project.state === 2 && (
         <>
-          <h3 id="completed" className="mt-0">⌛ Your video is cropping...</h3>
+          <h3 id="completed" className="mt-0">⌛️ Your video is cropping...</h3>
           <span className="flex justify-center items-center my-4">
             <LoadingSpinner />
             <label className="label">
@@ -82,6 +95,11 @@ export default function ProjectPreview({ project, revalidator }: { project: Proj
       {project.state === 3 && (
         <>
           <h3 id="completed" className="mt-0"> 🎉 Crop Complete!</h3>
+          {hasWebviewWarning &&
+            <p>
+              💢 Problems downloading file? Make sure you open the app on your phone browser. Don't worry your file will be here waiting for you. 
+            </p>
+          }
           <button className="btn btn-primary my-2" onClick={downloadObject} disabled={!outputUrl}>
             <DownloadIcon/>
             Download file
