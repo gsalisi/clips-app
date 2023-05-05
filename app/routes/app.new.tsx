@@ -75,7 +75,7 @@ export default function ProjectsPage() {
       <div className="h-full w-full max-w-lg py-2">
         <Form method="post" className="form-control p-2">
           <label className="label">
-            <span className="label-text" >Project Title</span>
+            <span className="label-text">Project Title</span>
           </label>
           <input
             ref={titleRef}
@@ -84,6 +84,7 @@ export default function ProjectsPage() {
             placeholder="My awesome project"
             className={classNames("max-w-s input w-full", {"input-error": !!actionData?.errors?.title})}
             aria-invalid={actionData?.errors?.title ? true : undefined}
+            autoFocus
           />
           <label className="label">
             <span className="label-text">Aspect Ratio</span>

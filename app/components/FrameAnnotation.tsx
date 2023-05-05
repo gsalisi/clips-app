@@ -15,7 +15,21 @@ export default function FrameAnnotation({
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const [lastTrackHint, setTrackHint] = useState<TrackHint>();
   const [currentVideoTime, setCurrentVideoTime] = useState(0);
+  const [loadingOverlay, setLoadingOverlay] = useState(true);
   const [canAddHint, setCanAddHint] = useState(!existingTrackHints);
+  const [addedHint, setAddedHint] = useState(false);
+
+  const syncCanvasShape = () => {
+    if (!canvasRef.current || !overlayRef.current) {
+      return
+    }
+
+    const dims = video.getBoundingClientRect();
+    canvasRef.current.width = dims.width;
+    canvasRef.current.height = dims.height;
+    overlayRef.current.width = dims.width;
+    overlayRef.current.height = dims.height;
+  }
 
   const drawVideoToCanvas = () => {
     if (!canvasRef.current) {
@@ -25,6 +39,7 @@ export default function FrameAnnotation({
     if (!ctx) {
       return;
     }
+    syncCanvasShape()
     const dims = video.getBoundingClientRect();
     ctx.drawImage(video, 0, 0, dims.width, dims.height);
     console.log(video.currentTime)
@@ -49,7 +64,7 @@ export default function FrameAnnotation({
     if (!ctx) {
       return;
     }
-
+    
     // this flage is true when the user is dragging the mouse
     let isActive = false;
 
@@ -72,6 +87,8 @@ export default function FrameAnnotation({
       // style the context
       ctx.strokeStyle = "cyan";
       ctx.lineWidth = 4;
+      ctx.shadowColor = "#000";
+      ctx.shadowBlur = 20;
       ctx.strokeRect(0, 0, dims.width, dims.height);
 
       // calculate where the canvas is on the window
@@ -86,6 +103,8 @@ export default function FrameAnnotation({
       width = boxSize;
       height = boxSize;
     };
+
+    setup();
 
     const drawSelectorBox = (mouseX: number, mouseY: number) => {
       // save the starting x/y of the rectangle
@@ -190,61 +209,52 @@ export default function FrameAnnotation({
     if (!canvasRef.current || !overlayRef.current) {
       return;
     }
-    const dims = video.getBoundingClientRect();
-    // eslint-disable-next-line no-self-assign
-    video.currentTime = video.currentTime; // This triggers an onseeked event
-    canvasRef.current.width = dims.width;
-    canvasRef.current.height = dims.height;
-    overlayRef.current.width = dims.width;
-    overlayRef.current.height = dims.height;
-
-    if (!existingTrackHints) {
-      setupInteractionHandlers(overlayRef.current, canvasRef.current);
-    } else {
-      const overlayRect = overlayRef.current.getBoundingClientRect();
-      const ctx = overlayRef.current.getContext("2d");
-      if (!ctx) return;
-      // style the context
-      ctx.strokeStyle = "cyan";
-      ctx.lineWidth = 4;
-
-      let trackHint = existingTrackHints[0];
-      const [l, t, w, h] = trackHint.normLtwh;
-      ctx.strokeRect(
-        l * overlayRect.width,
-        t * overlayRect.height,
-        w * overlayRect.width,
-        h * overlayRect.height
-      );
-    }
-  }, [canvasRef, overlayRef, video]);
-
-  const clearOverlay = () => {
-    if (overlayRef.current) {
-      const canvas = overlayRef.current;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
+    // A little hacky but this makes everything more reliable for now
+    setTimeout(() => {
+      if (!canvasRef.current || !overlayRef.current) {
         return;
       }
-      canvas.width = 0;
-      canvas.height = 0;
-    }
-  };
+      syncCanvasShape()
+      if (!existingTrackHints) {
+        setupInteractionHandlers(overlayRef.current, canvasRef.current);
+      } else {
+        const overlayRect = overlayRef.current.getBoundingClientRect();
+        const ctx = overlayRef.current.getContext("2d");
+        if (!ctx) return;
+        // style the context
+        ctx.strokeStyle = "cyan";
+        ctx.lineWidth = 4;
+
+        let trackHint = existingTrackHints[0];
+        const [l, t, w, h] = trackHint.normLtwh;
+        ctx.strokeRect(
+          l * overlayRect.width,
+          t * overlayRect.height,
+          w * overlayRect.width,
+          h * overlayRect.height
+        );
+      }
+      // eslint-disable-next-line no-self-assign
+      video.currentTime = video.currentTime; // This triggers an onseeked event
+      setLoadingOverlay(false)
+    }, 2000)
+    
+  }, [canvasRef, overlayRef, video]);
 
   const addLastTrackHint = () => {
     if (lastTrackHint) {
         lastTrackHint.timeSecs = currentVideoTime
         addFocus(lastTrackHint);
-        // clearOverlay()
         setCanAddHint(false);
+        setAddedHint(true);
     }
   };
 
   return (
     <div className="w-full max-w-lg">
       <label className="label">
-        <span className="label-text">
-          {"Click on the person that you want to crop in to:"}
+        <span className="label-text font-bold">
+          {"👆 Tap on the person that you want to be the subject"}
         </span>
       </label>
       
@@ -257,11 +267,11 @@ export default function FrameAnnotation({
       </div>
       <label className="label">
         <span className="label-text">
-        Tip: You can scrub the video above to show a frame where the person is most visible.
+        💡 Tip: Scrub the video above to select a frame where the person is most visible.
         </span>
       </label>
       <button
-        className="btn-s btn-primary btn my-2 min-w-full"
+        className="btn-secondary btn mt-2 max-w-full"
         onClick={addLastTrackHint}
         disabled={!lastTrackHint || !canAddHint}
       >
@@ -279,8 +289,13 @@ export default function FrameAnnotation({
             d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        Focus on this person
+        Confirm Subject
       </button>
+      {addedHint && (
+        <label className="label">
+          <span className="text-green-500">Subject confirmed! 👍</span>
+        </label>
+      )}
     </div>
   );
 }

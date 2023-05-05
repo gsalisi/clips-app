@@ -27,7 +27,7 @@ import { signGetObjectUrl } from "~/s3.server";
 import ProjectPreview from "~/components/ProjectPreview";
 import FrameAnnotation from "~/components/FrameAnnotation";
 import { LoadingSpinner } from "~/components/Icons";
-import { add, formatDistance } from "date-fns";
+import { add, differenceInSeconds, formatDistance } from "date-fns";
 
 enum ProjectFormAction {
   uploadFile,
@@ -227,6 +227,8 @@ export default function ProjectPage() {
     data.project.inputFile ? UploadState.Complete : UploadState.Idle
   );
   const [uploadPercent, setUploadPercent] = useState<number>(0);
+  const [estCompleteDate, setEstCompleteDate] = useState<Date>();
+  const [proccesProgress, setProcessProgress] = useState(0);
   const [showFrameAnnotation, setShowFrameAnnotation] =
     useState<boolean>(false);
   const [hasAddedFocus, setHasAddedFocus] = useState<boolean>(false);
@@ -240,7 +242,7 @@ export default function ProjectPage() {
     data.inputSignedUrl;
 
   useEffect(() => {
-    if (videoRef && data.project.cropTrackerOpts?.trackHints) {
+    if (data.project.cropTrackerOpts?.trackHints) {
       setNumOfPersonSelectValue("multi");
       setReadyToProcess(true);
       setHasAddedFocus(true);
@@ -248,8 +250,7 @@ export default function ProjectPage() {
       setNumOfPersonSelectValue("single")
       setReadyToProcess(true);
     }
-    
-  }, [data, videoRef]);
+  }, [data.project.cropTrackerOpts]);
 
   const onVideoRefSet = useCallback((ref: HTMLVideoElement | null) => {
     setVideoRef(ref);
@@ -280,9 +281,6 @@ export default function ProjectPage() {
     //   key: res.key,
     //   bucket: res.bucket,
     // });
-    setUploadState(UploadState.Complete);
-    setUploadPercent(0);
-
     const formData = new FormData();
     formData.append("action", ProjectFormAction.uploadFile.toString());
     formData.append("key", res.key);
@@ -290,6 +288,8 @@ export default function ProjectPage() {
     submit(formData, {
       method: "post",
     });
+    setUploadState(UploadState.Complete);
+    setUploadPercent(0);
   };
 
   const onUploadError = (message: string) => {
@@ -325,178 +325,183 @@ export default function ProjectPage() {
   };
 
   const sendProcessRequest = () => {
+    setProcessProgress(1)
     const formData = new FormData();
     formData.append("action", ProjectFormAction.sendProcessRequest.toString());
     submit(formData, {
       method: "post",
     });
+
+    if (videoRef) {
+      // TODO: should populate this upon upload
+      const estimatedTimeToCompleteSecs = videoRef.duration * 10;
+      const lastModifiedDate = new Date(data.project.lastModifiedAt * 1000);
+      const estDate = add(lastModifiedDate, {
+        seconds: estimatedTimeToCompleteSecs,
+      });
+      setEstCompleteDate(estDate)
+    }
+    
     revalidator.revalidate();
   };
 
-  let estimatedTimeToCompletion = "";
-  if (videoRef) {
-    const estimatedTimeToCompleteSecs = videoRef.duration * 10;
-    const lastModifiedDate = new Date(data.project.lastModifiedAt * 1000);
-    const currDate = new Date();
-    const estDate = add(lastModifiedDate, {
-      seconds: estimatedTimeToCompleteSecs,
-    });
-    estimatedTimeToCompletion = formatDistance(estDate, currDate);
-  }
+  // useEffect(() => {
+  //   if (estCompleteDate) {
+  //     const interval = setInterval(() => {
+  //       const lastModifiedDate = new Date(data.project.lastModifiedAt * 1000);
+  //       const currDate = new Date()
+  //       const percent = differenceInSeconds(estCompleteDate, currDate) / differenceInSeconds(estCompleteDate, lastModifiedDate)
+  //       console.log(percent)
+  //       setProcessProgress(percent)
+  //     }, 1000)
+  //     return () => clearInterval(interval)
+  //   }
+  // }, [estCompleteDate])
 
   return (
     <div className="prose flex h-full w-full max-w-xl flex-col items-center p-2">
       <div className="w-full max-w-lg">
-        <h3 className="mt-0">1. Upload your video file here</h3>
-        <label className="label">
-          <span className="label-text">{"Accepts video files < 5GB"}</span>
-        </label>
-        <ReactS3Uploader
-          className="file-input w-full max-w-lg"
-          signingUrl="/s3/putobjecturl"
-          signingUrlMethod="GET"
-          s3path={`${data.project.id}`}
-          preprocess={onUploadStart}
-          // onSignedUrl={onSignedUrl}
-          onProgress={onUploadProgress}
-          onError={onUploadError}
-          onFinish={onUploadFinish}
-          // signingUrlHeaders={{ additional: headers }}
-          // signingUrlQueryParams={{ additional: query-params }}
-          signingUrlWithCredentials={true} // in case when need to pass authentication credentials via CORS
-          uploadRequestHeaders={{ "x-amz-acl": "private" }}
-          contentDisposition="auto"
-          scrubFilename={(filename: string) =>
-            filename.replace(/[^\w\d_\-.]+/gi, "")
-          }
-          // inputRef={(cmp) => setInputComp(cmp)}
-          autoUpload={true}
-          disabled={uploadState !== UploadState.Idle}
-        />
-        {uploadState === UploadState.Uploading && (
-          <label className="label">
-            Please stay on this page until the file is uploaded...
-          </label>
-        )}
-        {uploadState === UploadState.Complete && (
-          <label className="label">
-            Files uploaded and generated will only be stored for 24 hours.
-          </label>
-        )}
-        <progress
-          className="progress progress-success w-full"
-          value={uploadPercent}
-          max="100"
-          hidden={uploadState !== UploadState.Uploading}
-        ></progress>
+        <h1 className="mb-1">{data.project.title}</h1>
         <div className="divider"></div>
-        <h3 className="mt-0">2. Select processing options</h3>
-        {data.project.state >= 1 && (
-          <div className="w-full">
-            {inputSignedUrl && (
-              <>
-                <div className="flex-row justify-between py-2">
-                  <label className="label">
-                    <span className="label-txt">
-                      Are there multiple people in the video?
-                    </span>
-                  </label>
-                  <select
-                    className="max-w-s select-bordered select-secondary select select-lg w-full"
-                    name="numOfPerson"
-                    value={numOfPersonSelectValue}
-                    onChange={selectNumPerson}
-                    disabled={data.project.state >= 2}
-                  >
-                    <option value="" disabled>
-                      Select answer...
-                    </option>
-                    <option value="multi">Yes</option>
-                    <option value="single">No, just one.</option>
-                  </select>
-                  {/* <label className="label cursor-pointer justify-start space-x-1">
-                    <span className="label-text">
-                      Are there multiple people in the video?
-                    </span>
-                    <input
-                      type="checkbox"
-                      className="checkbox-primary checkbox"
-                      checked={showFrameAnnotation}
-                      onChange={toggleSelector}
-                      disabled={data.project.state >= 2}
-                    />
-                  </label> */}
-                </div>
-                {numOfPersonSelectValue &&
-                  <>
-                    <label className="label">
-                      <span className="label-text">{"Input Video Preview"}</span>
-                    </label>
-                    <div className="flex flex-col">
-                      <video
-                        ref={onVideoRefSet}
-                        className="m-0 max-h-96 max-w-full"
-                        controls
-                      >
-                        <source src={inputSignedUrl} />
-                      </video>
-                    </div>
-                  </>
-                }
-                {showFrameAnnotation && videoRef && (
-                  <FrameAnnotation
-                    video={videoRef}
-                    addFocus={addFocus}
-                    existingTrackHints={
-                      data.project.cropTrackerOpts?.trackHints
-                    }
-                  ></FrameAnnotation>
-                )}
-                <button
-                  className={classNames("btn-primary btn my-4 w-full", {
-                    loading: data.project.state === 2,
-                  })}
-                  disabled={!readyToProcess || data.project.state === 2}
-                  onClick={sendProcessRequest}
-                >
-                  {data.project.state === 2 ? "Processing" : "Start Processing"}
-                </button>
-              </>
+        {data.project.state === 0 && 
+          <>
+            <h3 id="idle" className="mt-0">👋 Upload your video file here</h3>
+            <label className="label">
+              <span className="label-text">{"Accepts video files < 5GB"}</span>
+            </label>
+            <ReactS3Uploader
+              className="file-input w-full max-w-lg"
+              signingUrl="/s3/putobjecturl"
+              signingUrlMethod="GET"
+              s3path={`${data.project.id}`}
+              preprocess={onUploadStart}
+              // onSignedUrl={onSignedUrl}
+              onProgress={onUploadProgress}
+              onError={onUploadError}
+              onFinish={onUploadFinish}
+              // signingUrlHeaders={{ additional: headers }}
+              // signingUrlQueryParams={{ additional: query-params }}
+              signingUrlWithCredentials={true} // in case when need to pass authentication credentials via CORS
+              uploadRequestHeaders={{ "x-amz-acl": "private" }}
+              contentDisposition="auto"
+              scrubFilename={(filename: string) =>
+                filename.replace(/[^\w\d_\-.]+/gi, "")
+              }
+              // inputRef={(cmp) => setInputComp(cmp)}
+              autoUpload={true}
+              disabled={uploadState !== UploadState.Idle}
+            />
+            {uploadState === UploadState.Uploading && (
+              <label className="label">
+                Please stay on this page until the file is uploaded...
+              </label>
             )}
-          </div>
-        )}
-        <div className="divider"></div>    
-
+            <progress
+              className="progress progress-success w-full"
+              value={uploadPercent}
+              max="100"
+              hidden={uploadState !== UploadState.Uploading}
+            ></progress>
+            {uploadState === UploadState.Complete && (
+              <label className="label">
+                Please wait for the next steps...
+              </label>
+            )}
+            {uploadState === UploadState.Uploading && (
+              <label className="label">
+                Files are only stored in our servers for 24 hours.
+              </label>
+            )}
+            <div className="divider"></div>
+          </>
+        }
+        {data.project.state === 1 &&
+          <> 
+            <h3 id="ready" className="mt-0">💁‍♂️ Select processing options</h3>
+            {data.project.state >= 1 && (
+              <div className="w-full">
+                {inputSignedUrl && (
+                  <>
+                    <div className="flex-row justify-between py-2">
+                      <label className="label">
+                        <span className="label-txt">
+                          🧑‍🦲Are there several people visible in the video?
+                        </span>
+                      </label>
+                      <select
+                        className="max-w-s select-bordered select-secondary select select-lg w-full"
+                        name="numOfPerson"
+                        value={numOfPersonSelectValue}
+                        onChange={selectNumPerson}
+                        disabled={data.project.state >= 2}
+                      >
+                        <option value="" disabled>
+                          Select answer...
+                        </option>
+                        <option value="multi">Yes</option>
+                        <option value="single">No, just one.</option>
+                      </select>
+                      {/* <label className="label cursor-pointer justify-start space-x-1">
+                        <span className="label-text">
+                          Are there multiple people in the video?
+                        </span>
+                        <input
+                          type="checkbox"
+                          className="checkbox-primary checkbox"
+                          checked={showFrameAnnotation}
+                          onChange={toggleSelector}
+                          disabled={data.project.state >= 2}
+                        />
+                      </label> */}
+                    </div>
+                    {numOfPersonSelectValue &&
+                      <>
+                        <label className="label">
+                          <span className="label-text">Preview</span>
+                        </label>
+                        <div className="flex flex-col my-1">
+                          <video
+                            ref={onVideoRefSet}
+                            className="m-0 max-w-full"
+                            controls
+                          >
+                            <source src={inputSignedUrl} />
+                          </video>
+                        </div>
+                      </>
+                    }
+                    {numOfPersonSelectValue === "multi" && videoRef && (
+                      <FrameAnnotation
+                        video={videoRef}
+                        addFocus={addFocus}
+                        existingTrackHints={
+                          data.project.cropTrackerOpts?.trackHints
+                        }
+                      ></FrameAnnotation>
+                    )}
+                    <button
+                      className={classNames("btn-primary btn my-4 w-full", {
+                        loading: proccesProgress > 0,
+                      })}
+                      disabled={!readyToProcess}
+                      onClick={sendProcessRequest}
+                    >
+                      {"🚀 Submit Video"}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+            <div className="divider"></div>
+          </>
+        }
         {data.project.state >= 2 && (
           <>
-            <h3 className="mt-0">3. Download video here </h3>
-            {data.project.state === 2 && (
-              <>
-                <LoadingSpinner />
-                <label className="label">
-                  You can leave this page while your video is processing...
-                </label>
-                {estimatedTimeToCompletion && (
-                  <label className="label">
-                    {`Estimated time to completion: ${estimatedTimeToCompletion}`}
-                  </label>
-                )}
-              </>
-            )}
-            {data.project.state === 3 && (
-              <ProjectPreview
-                project={data.project}
-                revalidator={revalidator}
-              ></ProjectPreview>
-            )}
-            {data.project.state === 4 && (
-              <p className="text-red-700">
-                Sorry! Something went wrong. Please try again in a <Link to="/app/new">new project</Link>.
-              </p>
-            )}
+            <ProjectPreview project={data.project} revalidator={revalidator}/>
+            <div className="divider"></div>
           </>
         )}
-        <div className="divider"></div>
+
       </div>
     </div>
   );

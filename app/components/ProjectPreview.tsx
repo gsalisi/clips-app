@@ -1,7 +1,7 @@
-import { useRevalidator } from "@remix-run/react";
+import { Link, useRevalidator } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import type { Project } from "~/models/project.server";
-import { DownloadIcon } from "./Icons";
+import { DownloadIcon, LoadingSpinner } from "./Icons";
 
 
 const fetchOutputUrl = async (project: Project) => {
@@ -59,27 +59,63 @@ export default function ProjectPreview({ project, revalidator }: { project: Proj
   };
 
   return (
-    <div className="flex w-full">
-      <div className="flex-col w-full max-w-lg">
-        {outputUrl && (
-          <>
-            <div className="w-full max-w-lg">
-              <div className="flex flex-col">
-                <video className="m-0 max-h-96 max-full-w" controls>
-                  <source src={outputUrl} />
-                </video>
-              </div>
-            </div>
+    <>
+      {project.state === 2 && (
+        <>
+          <h3 id="completed" className="mt-0">⌛ Your video is cropping...</h3>
+          <span className="flex justify-center items-center my-4">
+            <LoadingSpinner />
             <label className="label">
-              Videos will only be available for 24 hours.
+              You can leave this page while waiting...
             </label>
-          </>
-        )}
-        <button className="btn my-2" onClick={downloadObject} disabled={!outputUrl}>
-          <DownloadIcon/>
-          Download
-        </button>
-      </div>
-    </div>
+          </span>
+          
+          {/* {estCompleteDate && 
+            <progress
+              className="progress progress-success w-full"
+              value={proccesProgress}
+              max="100"
+            ></progress>
+          } */}
+        </>
+      )}
+      {project.state === 3 && (
+        <>
+          <h3 id="completed" className="mt-0"> 🎉 Crop Complete!</h3>
+          <button className="btn btn-primary my-2" onClick={downloadObject} disabled={!outputUrl}>
+            <DownloadIcon/>
+            Download file
+          </button>
+          <label className="label">
+            Videos will only be available to download for 24 hours.
+          </label>
+          <div className="flex w-full">
+            <div className="flex-col w-full max-w-lg">
+              {outputUrl && (
+                <>
+                  <div className="w-full max-w-lg">
+                    <div className="flex flex-col">
+                      <video className="m-0 max-h-96 max-full-w" controls>
+                        <source src={outputUrl} />
+                      </video>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+      {project.state === 4 && (
+        <>
+          <h3 id="completed" className="mt-0">😭 Processing Failed!</h3>
+          <p className="text-red-700">
+            Sorry! Something went wrong. Please try again in a <Link to="/app/new">new project</Link>.
+          </p>
+        </>
+      )}
+      
+    </>
+    
   );
 }
