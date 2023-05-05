@@ -160,7 +160,7 @@ export const action = async ({ params, request }: ActionArgs) => {
     );
   } else if (parseInt(projectAction) === ProjectFormAction.sendProcessRequest) {
     console.log("====> Sending request to SQS...");
-    
+
     const cropTrackerOpts: CropTrackerOpts = {
       excludeLimbs: true,
       paddingRatio: 1.2,
@@ -247,14 +247,14 @@ export default function ProjectPage() {
       setReadyToProcess(true);
       setHasAddedFocus(true);
     } else if (data.project.inputFile && data.project.state >= 2) {
-      setNumOfPersonSelectValue("single")
+      setNumOfPersonSelectValue("single");
       setReadyToProcess(true);
     }
   }, [data.project.cropTrackerOpts]);
 
   const onVideoRefSet = useCallback((ref: HTMLVideoElement | null) => {
     setVideoRef(ref);
- }, []);
+  }, []);
 
   const onUploadStart = (file: File, next: (f: File) => void) => {
     setUploadState(UploadState.Uploading);
@@ -325,7 +325,7 @@ export default function ProjectPage() {
   };
 
   const sendProcessRequest = () => {
-    setProcessProgress(1)
+    setProcessProgress(1);
     const formData = new FormData();
     formData.append("action", ProjectFormAction.sendProcessRequest.toString());
     submit(formData, {
@@ -339,10 +339,10 @@ export default function ProjectPage() {
       const estDate = add(lastModifiedDate, {
         seconds: estimatedTimeToCompleteSecs,
       });
-      setEstCompleteDate(estDate)
+      setEstCompleteDate(estDate);
     }
 
-    window.scrollTo({top: 0})
+    window.scrollTo({ top: 0 });
     revalidator.revalidate();
   };
 
@@ -362,11 +362,30 @@ export default function ProjectPage() {
   return (
     <div className="prose flex h-full w-full max-w-xl flex-col items-center p-2">
       <div className="w-full max-w-lg">
-        <h1 className="mb-1">{data.project.title}</h1>
+        <div className="flex items-end">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="mr-1.5 h-5 w-5"
+          >
+            <path
+              strokeLinecap="round"
+              d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"
+            />
+          </svg>
+          <h3 className="my-0 font-bold leading-none mb-0.5">
+            {data.project.title}
+          </h3>
+        </div>
         <div className="divider"></div>
-        {data.project.state === 0 && 
+        {data.project.state === 0 && (
           <>
-            <h3 id="idle" className="mt-0">👋 Upload your video file here</h3>
+            <h3 id="idle" className="mt-0">
+              📤 Upload your video file here
+            </h3>
             <label className="label">
               <span className="label-text">{"Accepts video files < 5GB"}</span>
             </label>
@@ -404,9 +423,7 @@ export default function ProjectPage() {
               hidden={uploadState !== UploadState.Uploading}
             ></progress>
             {uploadState === UploadState.Complete && (
-              <label className="label">
-                Please wait for the next steps...
-              </label>
+              <label className="label">Please wait for the next steps...</label>
             )}
             {uploadState === UploadState.Uploading && (
               <label className="label">
@@ -415,10 +432,12 @@ export default function ProjectPage() {
             )}
             <div className="divider"></div>
           </>
-        }
-        {data.project.state === 1 &&
-          <> 
-            <h3 id="ready" className="mt-0">💁‍♂️ Select processing options</h3>
+        )}
+        {data.project.state === 1 && (
+          <>
+            <h3 id="ready" className="mt-0">
+              💁‍♂️ Select processing options
+            </h3>
             {data.project.state >= 1 && (
               <div className="w-full">
                 {inputSignedUrl && (
@@ -441,7 +460,6 @@ export default function ProjectPage() {
                         </option>
                         <option value="single">Just one.</option>
                         <option value="multi">More than one...</option>
-                        
                       </select>
                       {/* <label className="label cursor-pointer justify-start space-x-1">
                         <span className="label-text">
@@ -456,12 +474,12 @@ export default function ProjectPage() {
                         />
                       </label> */}
                     </div>
-                    {numOfPersonSelectValue &&
+                    {numOfPersonSelectValue && (
                       <>
                         <label className="label">
                           <span className="label-text">Preview</span>
                         </label>
-                        <div className="flex flex-col my-1">
+                        <div className="my-1 flex flex-col">
                           <video
                             ref={onVideoRefSet}
                             className="m-0 max-w-full"
@@ -471,7 +489,7 @@ export default function ProjectPage() {
                           </video>
                         </div>
                       </>
-                    }
+                    )}
                     {numOfPersonSelectValue === "multi" && videoRef && (
                       <FrameAnnotation
                         video={videoRef}
@@ -496,14 +514,13 @@ export default function ProjectPage() {
             )}
             <div className="divider"></div>
           </>
-        }
+        )}
         {data.project.state >= 2 && (
           <>
-            <ProjectPreview project={data.project} revalidator={revalidator}/>
+            <ProjectPreview project={data.project} revalidator={revalidator} />
             <div className="divider"></div>
           </>
         )}
-
       </div>
     </div>
   );

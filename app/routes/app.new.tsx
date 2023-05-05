@@ -72,61 +72,76 @@ export default function ProjectsPage() {
 
   return (
     <div className="flex h-full w-full justify-center bg-gray-50">
-      <div className="h-full w-full max-w-lg py-2">
-        <Form method="post" className="form-control p-2">
-          <label className="label">
-            <span className="label-text">Project Title</span>
-          </label>
-          <input
-            ref={titleRef}
-            type="text"
-            name="title"
-            placeholder="My awesome project"
-            className={classNames("max-w-s input w-full", {"input-error": !!actionData?.errors?.title})}
-            aria-invalid={actionData?.errors?.title ? true : undefined}
-            autoFocus
-          />
-          <label className="label">
-            <span className="label-text">Aspect Ratio</span>
-          </label>
-          <label className="label cursor-pointer justify-normal space-x-2">
+      <div className="prose h-full w-full max-w-lg py-2">
+        <h2 className="m-2">👋 Create a new project</h2>
+        <Form method="post" className="form-control space-y-2 p-2">
+          <div>
+            <label className="label">
+              <span className="label-text font-bold">Project Title</span>
+            </label>
             <input
-              type="radio"
-              name="aspectRatio"
-              className="radio checked:bg-blue-500"
-              onChange={onAspectRatioChange}
-              checked={aspectRatio === AspectRatio.TallPortrait}
-              value={AspectRatio.TallPortrait}
+              ref={titleRef}
+              type="text"
+              name="title"
+              placeholder="My awesome project"
+              className={classNames("max-w-s input w-full", {
+                "input-error": !!actionData?.errors?.title,
+              })}
+              aria-invalid={actionData?.errors?.title ? true : undefined}
+              autoFocus
             />
-            <span className="label-text">
-              9:16 - 1080x1920 - For TikTok / Reels
-            </span>
-          </label>
-          <label className="label cursor-pointer justify-normal space-x-2">
-            <input
-              type="radio"
-              name="aspectRatio"
-              className="radio checked:bg-blue-500"
-              onChange={onAspectRatioChange}
-              checked={aspectRatio === AspectRatio.Portrait}
-              value={AspectRatio.Portrait}
-            />
-            <span className="m label-text">3:4 - 1080x1440 - Portrait</span>
-          </label>
-          <label className="label cursor-pointer justify-normal space-x-2">
-            <input
-              type="radio"
-              name="aspectRatio"
-              className="radio checked:bg-blue-500"
-              onChange={onAspectRatioChange}
-              checked={aspectRatio === AspectRatio.Box}
-              value={AspectRatio.Box}
-            />
-            <span className="m label-text">1:1 - 1080x1080 - Box</span>
-          </label>
-          <button type="submit" className="btn-primary btn my-1">Create Project</button>
-          <button onClick={() => history.back()} className="btn my-1">Cancel</button>
-        </Form>  
+          </div>
+          <div>
+            <label className="label">
+                <span className="label-text font-bold">Aspect Ratio</span>
+            </label>
+            <label className="label cursor-pointer justify-normal space-x-2">
+                <input
+                type="radio"
+                name="aspectRatio"
+                className="radio checked:bg-blue-500"
+                onChange={onAspectRatioChange}
+                checked={aspectRatio === AspectRatio.TallPortrait}
+                value={AspectRatio.TallPortrait}
+                />
+                <span className="label-text">
+                9:16 - 1080x1920 - For TikTok / Reels
+                </span>
+            </label>
+            <label className="label cursor-pointer justify-normal space-x-2">
+                <input
+                type="radio"
+                name="aspectRatio"
+                className="radio checked:bg-blue-500"
+                onChange={onAspectRatioChange}
+                checked={aspectRatio === AspectRatio.Portrait}
+                value={AspectRatio.Portrait}
+                />
+                <span className="m label-text">3:4 - 1080x1440 - Portrait</span>
+            </label>
+            <label className="label cursor-pointer justify-normal space-x-2">
+                <input
+                type="radio"
+                name="aspectRatio"
+                className="radio checked:bg-blue-500"
+                onChange={onAspectRatioChange}
+                checked={aspectRatio === AspectRatio.Box}
+                value={AspectRatio.Box}
+                />
+                <span className="m label-text">1:1 - 1080x1080 - Box</span>
+            </label>
+          </div>
+          <div className="rounded-md border-2 border-sky-600/10 bg-sky-500/10">
+            <p className="m-4">⚠️ All projects are deleted after 24 hours. </p>
+          </div>
+
+          <button type="submit" className="btn-primary btn my-1">
+            Create Project
+          </button>
+          <button onClick={() => history.back()} className="btn my-1">
+            Cancel
+          </button>
+        </Form>
       </div>
     </div>
   );

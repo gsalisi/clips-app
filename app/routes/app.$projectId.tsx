@@ -24,8 +24,6 @@ export default function ProjectPage(props: { "": any; }) {
   return (
     <div className="flex justify-center w-full bg-gray-50">
       <div className="flex justify-center w-full max-w-xl p-6">
-        {/* <h2 className="text-2xl font-bold my-2 indent-1">{data.project.title}</h2>
-        <div className="divider"></div> */}
         <Outlet/>
       </div>
     </div>
