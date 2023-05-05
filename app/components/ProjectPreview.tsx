@@ -44,14 +44,12 @@ export default function ProjectPreview({ project, revalidator }: { project: Proj
 
     setOutputPollInterval(interval);
 
-    const userAgent = window.navigator.userAgent.toLowerCase(),
-    safari = /safari/.test( userAgent ),
-    ios = /iphone|ipod|ipad/.test( userAgent );
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    // safari = /safari/.test( userAgent ),
+    const ios = /iphone|ipod|ipad/.test( userAgent );
 
     if( ios ) {
-        if ( !safari ) {
-          setHasWebViewWarning(true)
-        }
+      setHasWebViewWarning(true)
     }
     return () => clearInterval(interval);
   }, []);
@@ -67,7 +65,11 @@ export default function ProjectPreview({ project, revalidator }: { project: Proj
     });
     const res = await fetch(`/s3/getobjecturl?${params.toString()}`);
     const resJson = await res.json();
-    window.open(resJson.signedUrl, "_blank");
+    if (hasWebviewWarning) {
+      location.assign(resJson.signedUrl)
+    } else {
+      open(resJson.signedUrl, "_blank");
+    }
   };
 
   

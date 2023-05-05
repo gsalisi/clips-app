@@ -254,7 +254,7 @@ export default function FrameAnnotation({
     <div className="w-full max-w-lg">
       <label className="label">
         <span className="label-text font-bold">
-          {"👆 Tap on the person that you want to be the subject"}
+          {"👇 Tap on the person that you want to be the subject"}
         </span>
       </label>
       
