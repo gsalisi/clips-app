@@ -341,7 +341,8 @@ export default function ProjectPage() {
       });
       setEstCompleteDate(estDate)
     }
-    
+
+    window.scrollTo({top: 0})
     revalidator.revalidate();
   };
 
@@ -425,7 +426,7 @@ export default function ProjectPage() {
                     <div className="flex-row justify-between py-2">
                       <label className="label">
                         <span className="label-txt">
-                          🧑‍🦲Are there several people visible in the video?
+                          How many people are visible in the video?
                         </span>
                       </label>
                       <select
@@ -438,8 +439,9 @@ export default function ProjectPage() {
                         <option value="" disabled>
                           Select answer...
                         </option>
-                        <option value="multi">Yes</option>
-                        <option value="single">No, just one.</option>
+                        <option value="single">Just one.</option>
+                        <option value="multi">More than one...</option>
+                        
                       </select>
                       {/* <label className="label cursor-pointer justify-start space-x-1">
                         <span className="label-text">
