@@ -43,46 +43,27 @@ export const action = async ({ request }: ActionArgs) => {
     );
   }
 
+  let user = await verifyLogin(email, password);
+    
+  if (!user) {
+    return json(
+        { errors: { email: null, password: "Invalid email or password." } },
+        { status: 401 }
+    );
+  }
+
   await authenticator.authenticate("user-pass", request, {
     successRedirect: redirectTo,
     failureRedirect: "/app/login",
     context: { formData },
   });
 
-  // TODO: No response when there's an error with verification!
-  
+  // Note: Not sure if there's a better flow but 
+  // this should not get here because the authenticate call will redirect on success or failure...
   return json(
-    { errors: { email: null, password: "User or password is incorrect." } },
-    { status: 400 }
+    { errors: { email: null, password: "Sorry, something went wrong!" } },
+    { status: 500 }
   )
-  // } catch (response: any) {
-  //   if (response.status >= 400) {
-  //     const body = await response.json()
-  //     return json(
-  //       { errors: { email: null, password: body.message } },
-  //       { status: response.status }
-  //     )
-  //   } else if (response.status === 302) {
-  //     console.error(response)
-  //     return redirect(redirectTo);
-  //   }
-   
-  // }
-  // const user = await verifyLogin(email, password);
-
-  // if (!user) {
-  //   return json(
-  //     { errors: { email: "Invalid email or password", password: null } },
-  //     { status: 400 }
-  //   );
-  // }
-
-  // return createUserSession({
-  //   redirectTo,
-  //   remember: remember === "on" ? true : false,
-  //   request,
-  //   userId: user.id,
-  // });
 };
 
 export const meta: V2_MetaFunction = () => [{ title: "Login" }];
