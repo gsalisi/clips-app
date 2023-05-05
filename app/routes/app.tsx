@@ -12,7 +12,13 @@ export default function IndexPage() {
       <header className="bg-grey-800 w-full p-4 text-white">
         <div className="m-auto flex h-full w-full max-w-lg items-center justify-stretch">
           <Link className="prose flex-1" to="/app">
-            <div className="w-12 h-12" style={{backgroundImage: "url(/_static/popcrop-icon.png)", backgroundSize: 'cover'}}></div>
+            <div
+              className="h-12 w-12"
+              style={{
+                backgroundImage: "url(/_static/popcrop-icon.png)",
+                backgroundSize: "cover",
+              }}
+            ></div>
           </Link>
           <div className="full-width flex justify-end space-x-2">
             {!user && (
@@ -32,26 +38,50 @@ export default function IndexPage() {
               </Link>
             )}
             {user && (
-              <div className="dropdown-end dropdown">
-                <button className="rounded-full bg-slate-600 px-2 py-2 text-blue-100 hover:bg-blue-500 active:bg-blue-600">
-                  <UserIcon className="h-4 w-4 text-white" title={user.email} />
-                </button>
-                <Form action="/logout" method="post">
-                    <ul
-                    tabIndex={0}
-                    className="dropdown-content menu w-52 bg-base-100 p-2 shadow"
+              <>
+                <Link to="new" className="mx-4 block">
+                  <button className="btn-primary btn-sm btn">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="h-4 w-4"
                     >
-                    <li>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 4.5v15m7.5-7.5h-15"
+                      />
+                    </svg>
+                    New
+                  </button>
+                </Link>
+                <div className="dropdown-end dropdown">
+                  <button className="rounded-full bg-slate-600 px-2 py-2 text-blue-100 hover:bg-blue-500 active:bg-blue-600">
+                    <UserIcon
+                      className="h-4 w-4 text-white"
+                      title={user.email}
+                    />
+                  </button>
+                  <Form action="/logout" method="post">
+                    <ul
+                      tabIndex={0}
+                      className="dropdown-content menu w-52 bg-base-100 p-2 shadow"
+                    >
+                      <li>
                         <button type="submit" className="text-red-700">
-                            Logout
+                          Logout
                         </button>
-                    </li>
-                    <li>
-                        <span className="text-neutral" > {user.email} </span>
-                    </li>
+                      </li>
+                      <li>
+                        <span className="text-neutral"> {user.email} </span>
+                      </li>
                     </ul>
-                </Form>
-              </div>
+                  </Form>
+                </div>
+              </>
             )}
           </div>
         </div>

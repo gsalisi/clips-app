@@ -82,25 +82,6 @@ export default function ProjectsPage() {
           <h2 className="text-slate mx-4 my-auto text-xl font-bold">
             Projects
           </h2>
-          <Link to="new" className="mx-4 block">
-            <button className="btn-primary btn-sm btn">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="h-4 w-4"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4.5v15m7.5-7.5h-15"
-                />
-              </svg>
-              New
-            </button>
-          </Link>
         </div>
 
         <hr />
