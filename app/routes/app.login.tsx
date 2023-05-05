@@ -44,10 +44,12 @@ export const action = async ({ request }: ActionArgs) => {
   }
 
   await authenticator.authenticate("user-pass", request, {
-    successRedirect: "/app",
-    failureRedirect: "/app",
+    successRedirect: redirectTo,
+    failureRedirect: "/app/login",
     context: { formData },
   });
+
+  // TODO: No response when there's an error with verification!
   
   return json(
     { errors: { email: null, password: "User or password is incorrect." } },
