@@ -2,9 +2,10 @@ import type { ActionArgs, LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
 import { useEffect, useRef } from "react";
+import { authenticator } from "~/auth.server";
 
 import { createUser, getUserByEmail } from "~/models/user.server";
-import { createUserSession, getUserId } from "~/session.server";
+import { getUserId } from "~/session.server";
 import { safeRedirect, validateEmail } from "~/utils";
 
 export const loader = async ({ request }: LoaderArgs) => {
@@ -18,7 +19,7 @@ export const action = async ({ request }: ActionArgs) => {
   const email = formData.get("email");
   const password = formData.get("password");
   const redirectTo = safeRedirect(formData.get("redirectTo"), "/");
-
+  
   if (!validateEmail(email)) {
     return json(
       { errors: { email: "Email is invalid", password: null } },
@@ -52,15 +53,27 @@ export const action = async ({ request }: ActionArgs) => {
       { status: 400 }
     );
   }
+  await createUser(email, password);
 
-  const user = await createUser(email, password);
+  console.log("Created new user by email and password. Creating session next..")
 
-  return createUserSession({
-    redirectTo,
-    remember: false,
-    request,
-    userId: user.id,
+  const user = await authenticator.authenticate("user-pass", request, {
+    successRedirect: redirectTo,
+    failureRedirect: "/app",
+    context: { formData },
   });
+
+  return json(
+    { errors: null, ...user },
+    { status: 200 }
+  )
+
+  // return createUserSession({
+  //   redirectTo,
+  //   remember: false,
+  //   request,
+  //   userId: user.id,
+  // });
 };
 
 export const meta: V2_MetaFunction = () => [{ title: "Sign Up" }];
