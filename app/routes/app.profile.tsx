@@ -21,7 +21,7 @@ export default function ProfilePage() {
               Profile
             </h2>
             <p className="label-text">Email: {data.user.email}</p>
-            <p className="label-text">Pop Credits: 1000</p>
+            <p className="label-text">Credits Available: {data.user.credits}</p>
           </div>
           <div className="divider"></div>
           <Form action="/logout" method="post">
