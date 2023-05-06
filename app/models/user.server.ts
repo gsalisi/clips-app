@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import invariant from "tiny-invariant";
 import getUuidByString from "uuid-by-string";
 
+const INITIAL_CREDITS_AMOUNT = 10
+
 export type User = { 
   id: string; email: string;
   picture: string;
@@ -66,6 +68,7 @@ export async function findOrCreate({
     provider,
     providerID,
     name,
+    credits: INITIAL_CREDITS_AMOUNT,
   });
 
   const newUser = await getUserByEmail(cleanEmail);
@@ -90,6 +93,7 @@ export async function createUser(
   await db.user.put({
     pk: userId,
     email,
+    credits: 10,
   });
 
   const user = await getUserByEmail(cleanEmail);
@@ -128,7 +132,7 @@ export async function checkCredits(
 ) {
   const user = await getUserById(id)
   if (!user) {
-    return false
+    return 0
   }
-  return user.credits > 0
+  return user.credits
 }
