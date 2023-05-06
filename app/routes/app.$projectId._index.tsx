@@ -507,6 +507,7 @@ export default function ProjectPage() {
                             ref={onVideoRefSet}
                             className="m-0 max-w-full"
                             controls
+                            preload="auto"
                           >
                             <source src={inputSignedUrl} />
                           </video>

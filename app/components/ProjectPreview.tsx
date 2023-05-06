@@ -110,7 +110,7 @@ export default function ProjectPreview({ project, revalidator }: { project: Proj
                 <>
                   <div className="w-full max-w-lg">
                     <div className="flex flex-col">
-                      <video className="m-0 max-full-w" controls>
+                      <video className="m-0 max-full-w" controls preload="auto">
                         <source src={outputUrl} />
                       </video>
                      </div>
