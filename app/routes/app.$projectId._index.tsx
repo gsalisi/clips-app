@@ -6,6 +6,7 @@ import {
   Link,
   useFetcher,
   useLoaderData,
+  useLocation,
   useRevalidator,
   useSubmit,
 } from "@remix-run/react";
@@ -29,11 +30,17 @@ import FrameAnnotation from "~/components/FrameAnnotation";
 import { LoadingSpinner } from "~/components/Icons";
 import { add, differenceInSeconds, formatDistance } from "date-fns";
 import { checkCredits } from "~/models/user.server";
+import { message } from "aws-sdk/clients/sns";
 
 enum ProjectFormAction {
   uploadFile,
   addTrackHint,
   sendProcessRequest,
+}
+
+const NO_CREDITS_ERROR_CODE = "no_credits"
+const errorCodeToMessage = {
+  [NO_CREDITS_ERROR_CODE]: "😰 Sorry, you have no more credits left."
 }
 
 export const meta: V2_MetaFunction = () => [{ title: "PopCrop" }];
@@ -46,8 +53,8 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   if (!project) {
     throw new Response("Not Found", { status: 404 });
   }
-  console.log("loading project page");
-  console.log(project);
+  // console.log("loading project page");
+  // console.log(project);
   let inputSignedUrl = "",
     outputSignedUrl = "";
   if (project.inputFile) {
@@ -101,8 +108,10 @@ export const action = async ({ params, request }: ActionArgs) => {
     );
   }
 
-  if (process.env.ARC_ENV !== "testing" && !checkCredits(userId)) {
-    return redirect("?error=no_credits")
+  const credits = await checkCredits(userId);
+  if (credits <= 0)  {
+    console.log(`No more credits for ${userId}.`)
+    return redirect(`?error=${NO_CREDITS_ERROR_CODE}`)
   }
 
   console.log("===== PROJECT ACTION =====");
@@ -227,6 +236,7 @@ enum UploadState {
 export default function ProjectPage() {
   const data = useLoaderData<typeof loader>();
   const uploadedObjUrlFetcher = useFetcher();
+  const location = useLocation();
   const submit = useSubmit();
   const [uploadState, setUploadState] = useState<UploadState>(
     data.project.inputFile ? UploadState.Complete : UploadState.Idle
@@ -245,6 +255,9 @@ export default function ProjectPage() {
   const inputSignedUrl =
     (uploadedObjUrlFetcher.data && uploadedObjUrlFetcher.data.signedUrl) ||
     data.inputSignedUrl;
+
+  const params = new URLSearchParams(location.search);
+  const errorCode = params.get("error") as keyof typeof errorCodeToMessage;
 
   useEffect(() => {
     if (data.project.cropTrackerOpts?.trackHints) {
@@ -367,6 +380,11 @@ export default function ProjectPage() {
   return (
     <div className="prose flex h-full w-full max-w-xl flex-col items-center p-2">
       <div className="w-full max-w-lg">
+        {errorCode &&
+          <div className="mb-6 rounded-md border-2 border-red-600/10 bg-red-500/10">
+            <p className="m-4">{errorCodeToMessage[errorCode]}</p>
+          </div>
+        }
         <div className="flex items-end">
           <svg
             xmlns="http://www.w3.org/2000/svg"
