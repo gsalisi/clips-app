@@ -28,6 +28,7 @@ import ProjectPreview from "~/components/ProjectPreview";
 import FrameAnnotation from "~/components/FrameAnnotation";
 import { LoadingSpinner } from "~/components/Icons";
 import { add, differenceInSeconds, formatDistance } from "date-fns";
+import { checkCredits } from "~/models/user.server";
 
 enum ProjectFormAction {
   uploadFile,
@@ -98,6 +99,10 @@ export const action = async ({ params, request }: ActionArgs) => {
       { errors: { body: null, title: "action is required" } },
       { status: 400 }
     );
+  }
+
+  if (process.env.ARC_ENV !== "testing" && !checkCredits(userId)) {
+    return redirect("?error=no_credits")
   }
 
   console.log("===== PROJECT ACTION =====");

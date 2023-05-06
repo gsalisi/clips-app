@@ -9,10 +9,11 @@ export type User = {
   provider: string;
   providerID: string;
   name: string; 
+  credits: number;
 };
 export type Password = { password: string };
 
-export async function getUserById(id: User["id"]): Promise<Pick<User, "id" | "email"> | null> {
+export async function getUserById(id: User["id"]): Promise<Pick<User, "id" | "email" | "credits"> | null> {
   const db = await arc.tables();
   const result = await db.user.query({
     KeyConditionExpression: "pk = :pk",
@@ -20,7 +21,7 @@ export async function getUserById(id: User["id"]): Promise<Pick<User, "id" | "em
   });
 
   const [record] = result.Items;
-  if (record) return { id: record.pk, email: record.email };
+  if (record) return { id: record.pk, email: record.email, credits: record.credits };
   return null;
 }
 
@@ -120,4 +121,14 @@ export async function verifyLogin(
   }
 
   return getUserByEmail(email);
+}
+
+export async function checkCredits(
+  id: User["id"]
+) {
+  const user = await getUserById(id)
+  if (!user) {
+    return false
+  }
+  return user.credits > 0
 }
