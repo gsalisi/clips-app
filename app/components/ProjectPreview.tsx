@@ -77,14 +77,11 @@ export default function ProjectPreview({ project, revalidator }: { project: Proj
     <>
       {project.state === 2 && (
         <>
-          <h3 id="completed" className="mt-0">⌛️ Your video is cropping...</h3>
-          <span className="flex justify-center items-center my-4">
-            <LoadingSpinner />
-            <label className="label">
-              You can leave this page while waiting...
-            </label>
-          </span>
-          
+          <h3 id="completed" className="mt-0"> <LoadingSpinner />Video is processing...</h3>
+          <div className="mb-6 p-2 rounded-md border-2 border-sky-600/10 bg-sky-500/10 w-full">
+            <p className="m-2">Our ✨magic✨ may require a few minutes to complete. </p>
+            <p className="m-2 font-bold">☕ You can leave this page and come back later.</p>
+          </div>
           {/* {estCompleteDate && 
             <progress
               className="progress progress-success w-full"
