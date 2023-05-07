@@ -23,14 +23,13 @@ import {
   updateProjectState,
 } from "~/models/project.server";
 import { getS3KeyFileName, sendSqsMessage } from "~/sqs.server";
+import type { CropperSQSPayload } from "~/sqs.server";
 import classNames from "classnames";
 import { signGetObjectUrl } from "~/s3.server";
 import ProjectPreview from "~/components/ProjectPreview";
 import FrameAnnotation from "~/components/FrameAnnotation";
-import { LoadingSpinner } from "~/components/Icons";
 import { add, differenceInSeconds, formatDistance } from "date-fns";
 import { checkCredits } from "~/models/user.server";
-import { message } from "aws-sdk/clients/sns";
 
 enum ProjectFormAction {
   uploadFile,
@@ -200,6 +199,7 @@ export const action = async ({ params, request }: ActionArgs) => {
 
     const response = await sendSqsMessage({
       type: "crop",
+      env: process.env.ARC_ENV as CropperSQSPayload["env"],
       user_id: updatedProject.userId,
       project_id: updatedProject.id,
       input_key: updatedProject.inputFile.key,

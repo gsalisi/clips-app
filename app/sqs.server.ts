@@ -5,8 +5,9 @@ import path from "node:path";
 import { TrackHint } from "./models/project.server";
 
 // This is in camel-case because this is consumed in the python code
-type CropperSQSPayload = {
+export type CropperSQSPayload = {
   type: "crop";
+  env: "testing" | "staging" | "production";
   project_id: string;
   user_id: string;
   bucket: string;
