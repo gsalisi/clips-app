@@ -40,7 +40,7 @@ const getCallback = (provider: SocialsProvider) => {
   if (process.env.ARC_ENV === "staging") {
     return `https://staging.popcrop.studio/${path}`;
   } else if (process.env.ARC_ENV === "production") {
-    return `https://mazuhc5gue.execute-api.us-west-2.amazonaws.com/${path}`;
+    return `https://popcrop.studio/${path}`;
   }
   return `http://localhost:3000/${path}`;
 };
