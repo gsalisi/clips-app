@@ -38,7 +38,7 @@ export let authenticator = new Authenticator<AuthUser>(sessionStorage, {
 const getCallback = (provider: SocialsProvider) => {
   const path = `auth/${provider}/callback`;
   if (process.env.ARC_ENV === "staging") {
-    return `https://pgxdeo1sba.execute-api.us-west-2.amazonaws.com/${path}`;
+    return `https://staging.popcrop.studio/${path}`;
   } else if (process.env.ARC_ENV === "production") {
     return `https://mazuhc5gue.execute-api.us-west-2.amazonaws.com/${path}`;
   }
