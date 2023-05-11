@@ -451,6 +451,7 @@ export default function ProjectPage() {
               // inputRef={(cmp) => setInputComp(cmp)}
               autoUpload={true}
               disabled={uploadState !== UploadState.Idle}
+              multiple
             />
             {uploadState === UploadState.Uploading && (
               <label className="label">
