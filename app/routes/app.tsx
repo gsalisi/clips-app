@@ -8,8 +8,8 @@ export const meta: V2_MetaFunction = () => [{ title: "PopCrop" }];
 export default function IndexPage() {
   const user = useOptionalUser();
   return (
-    <div className="flex h-full min-h-screen flex-col">
-      <header className="bg-grey-800 w-full p-4 text-white">
+    <div className="flex-col h-full">
+      <header className="bg-white w-full p-4 text-white">
         <div className="m-auto flex h-full w-full max-w-lg items-center justify-stretch">
           <Link className="prose flex-1" to="/app">
             <div
@@ -71,7 +71,7 @@ export default function IndexPage() {
           </div>
         </div>
       </header>
-      <main className="flex min-h-full bg-white">
+      <main className="flex h-full">
         <Outlet />
       </main>
       {/* <footer className="footer items-center bg-neutral p-4 text-neutral-content">
