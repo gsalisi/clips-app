@@ -76,8 +76,8 @@ export default function ProjectsPage() {
     });
   }
   return (
-    <div className="flex w-full justify-center bg-gray-50">
-      <div className="h-full w-full max-w-lg bg-gray-50">
+    <div className="flex w-full h-full justify-center">
+      <div className="h-full w-full max-w-lg">
         <div className="flex justify-between py-4">
           <h2 className="text-slate mx-4 my-auto text-xl font-bold">
             Projects
@@ -123,7 +123,7 @@ export default function ProjectsPage() {
                         "bg-sky-400": project.state === 2,
                         "hidden": project.state !== 2
                       })}></span>
-                      <span className={classNames("relative inline-flex rounded-full h-2 w-2 bg-sky-500", {
+                      <span className={classNames("relative inline-flex rounded-full h-2 w-2", {
                         "bg-zinc-400": project.state < 2,
                         "bg-sky-400": project.state === 2,
                         "bg-green-400": project.state === 3,

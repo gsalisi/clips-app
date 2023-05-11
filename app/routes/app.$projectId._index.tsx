@@ -37,6 +37,9 @@ enum ProjectFormAction {
   sendProcessRequest,
 }
 
+const FRAMING_OPTION_BODY_ONLY = "body-only";
+const FRAMING_OPTION_INCLUDE_HANDS_AND_FEET = "include-hands-and-feet"
+
 const NO_CREDITS_ERROR_CODE = "no_credits"
 const errorCodeToMessage = {
   [NO_CREDITS_ERROR_CODE]: "😰 Sorry, you have no more credits left."
@@ -173,12 +176,14 @@ export const action = async ({ params, request }: ActionArgs) => {
     );
   } else if (parseInt(projectAction) === ProjectFormAction.sendProcessRequest) {
     console.log("====> Sending request to SQS...");
-
-    const cropTrackerOpts: CropTrackerOpts = {
-      excludeLimbs: true,
-      paddingRatio: 1.2,
-      smoothingWindowSecs: 2,
-    };
+    const cropTrackerOptsStr = formData.get("cropTrackerOpts");
+    if (typeof cropTrackerOptsStr !== "string" || cropTrackerOptsStr.length === 0) {
+      return json(
+        { errors: { body: null, title: "croptTrackerOpts is required" } },
+        { status: 400 }
+      );
+    }
+    const cropTrackerOpts: CropTrackerOpts = JSON.parse(cropTrackerOptsStr);
 
     const updatedProject = await updateCropTrackerOptsProject({
       id: params.projectId,
@@ -252,6 +257,11 @@ export default function ProjectPage() {
     useState<string>("");
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>();
   const revalidator = useRevalidator();
+  const [cropTrackerOpts, setCropTrackerOpts] = useState<CropTrackerOpts>({
+    excludeLimbs: true,
+    paddingRatio: 1.2,
+    smoothingWindowSecs: 2,
+  });
   const inputSignedUrl =
     (uploadedObjUrlFetcher.data && uploadedObjUrlFetcher.data.signedUrl) ||
     data.inputSignedUrl;
@@ -345,6 +355,7 @@ export default function ProjectPage() {
   const sendProcessRequest = () => {
     setProcessProgress(1);
     const formData = new FormData();
+    formData.append("cropTrackerOpts", JSON.stringify(cropTrackerOpts));
     formData.append("action", ProjectFormAction.sendProcessRequest.toString());
     submit(formData, {
       method: "post",
@@ -363,6 +374,13 @@ export default function ProjectPage() {
     window.scrollTo({ top: 0 });
     revalidator.revalidate();
   };
+
+  const onFramingOptionsChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
+    setCropTrackerOpts({
+      ...cropTrackerOpts,
+      excludeLimbs: event.target.value === FRAMING_OPTION_BODY_ONLY
+    })
+  }
 
   // useEffect(() => {
   //   if (estCompleteDate) {
@@ -523,6 +541,37 @@ export default function ProjectPage() {
                         }
                       ></FrameAnnotation>
                     )}
+                    {numOfPersonSelectValue && 
+                      <div className="flex-row justify-between py-2">
+                        <label className="label">
+                          <span className="label-txt">
+                            Other framing options:
+                          </span>
+                        </label>
+                        <select
+                          className="max-w-s select-bordered select w-full"
+                          name="excludeLimbs"
+                          value={cropTrackerOpts.excludeLimbs ? FRAMING_OPTION_BODY_ONLY : FRAMING_OPTION_INCLUDE_HANDS_AND_FEET}
+                          onChange={onFramingOptionsChange}
+                          disabled={data.project.state >= 2}
+                        >
+                          <option value={FRAMING_OPTION_BODY_ONLY}>Body only</option>
+                          <option value={FRAMING_OPTION_INCLUDE_HANDS_AND_FEET}>Include hands and feet</option>
+                        </select>
+                        {/* <label className="label cursor-pointer justify-start space-x-1">
+                          <span className="label-text">
+                            Are there multiple people in the video?
+                          </span>
+                          <input
+                            type="checkbox"
+                            className="checkbox-primary checkbox"
+                            checked={showFrameAnnotation}
+                            onChange={toggleSelector}
+                            disabled={data.project.state >= 2}
+                          />
+                        </label> */}
+                      </div>
+                    }
                     <button
                       className={classNames("btn-primary btn my-4 w-full", {
                         loading: proccesProgress > 0,
