@@ -5,6 +5,26 @@ import getUuidByString from "uuid-by-string";
 
 const INITIAL_CREDITS_AMOUNT = 10
 
+const EMAIL_ALLOWLIST = new Set([
+  "gvc222@nyu.edu",
+  "natesouryasack.business@gmail.com",
+  "nathan.tiangson@kindredculture.ca",
+  "gerardsalisi22@gmail.com",
+  "lizcellanegaddi7@gmail.com",
+  "nealtiu21@gmail.com",
+  "tffntrinh@gmail.com",
+  "geoffreysalisi@gmail.com",
+  "admin@kindredculture.ca",
+  "alyssacorpuz@gmail.com",
+  "j382lee@gmail.com",
+  "cynthia.chen678@gmail.com",
+  "f.tiangson@gmail.com",
+  "devonstonej@gmail.com",
+  "me@ericdudley.com",
+  "kaila0331@gmail.com",
+  "miyokosono@yahoo.com",
+]);
+
 export type User = { 
   id: string; email: string;
   picture: string;
@@ -54,6 +74,11 @@ export async function findOrCreate({
   name,
 }: Pick<User, "email" | "picture" | "provider" | "providerID" | "name">) {
   const cleanEmail = dePlussedEmail(email)
+
+  if (!EMAIL_ALLOWLIST.has(cleanEmail)) {
+    throw Error("This email is not allowlisted.")
+  }
+  
   const user = await getUserByEmail(cleanEmail)
   if (user) {
     return user
@@ -82,9 +107,15 @@ export async function createUser(
   password: Password["password"]
 ) {
   const cleanEmail = dePlussedEmail(email)
+
+  if (!EMAIL_ALLOWLIST.has(cleanEmail)) {
+    throw Error("This email is not allowlisted.")
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10);
   const db = await arc.tables();
   const userId = getUuidByString(cleanEmail)
+
   await db.password.put({
     pk: userId,
     password: hashedPassword,
