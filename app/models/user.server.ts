@@ -5,26 +5,6 @@ import getUuidByString from "uuid-by-string";
 
 const INITIAL_CREDITS_AMOUNT = 10
 
-const EMAIL_ALLOWLIST = new Set([
-  "gvc222@nyu.edu",
-  "natesouryasack.business@gmail.com",
-  "nathan.tiangson@kindredculture.ca",
-  "gerardsalisi22@gmail.com",
-  "lizcellanegaddi7@gmail.com",
-  "nealtiu21@gmail.com",
-  "tffntrinh@gmail.com",
-  "geoffreysalisi@gmail.com",
-  "admin@kindredculture.ca",
-  "alyssacorpuz@gmail.com",
-  "j382lee@gmail.com",
-  "cynthia.chen678@gmail.com",
-  "f.tiangson@gmail.com",
-  "devonstonej@gmail.com",
-  "me@ericdudley.com",
-  "kaila0331@gmail.com",
-  "miyokosono@yahoo.com",
-]);
-
 export type User = { 
   id: string; email: string;
   picture: string;
@@ -34,6 +14,12 @@ export type User = {
   credits: number;
 };
 export type Password = { password: string };
+
+async function checkAllowlist(email: string): Promise<boolean> {
+  const db = await arc.tables();
+  const allowlist_user = await db.user_allowlist.get({ email: email })
+  return !!allowlist_user
+}
 
 export async function getUserById(id: User["id"]): Promise<Pick<User, "id" | "email" | "credits"> | null> {
   const db = await arc.tables();
@@ -74,18 +60,20 @@ export async function findOrCreate({
   name,
 }: Pick<User, "email" | "picture" | "provider" | "providerID" | "name">) {
   const cleanEmail = dePlussedEmail(email)
-
-  if (!EMAIL_ALLOWLIST.has(cleanEmail)) {
-    throw Error("This email is not allowlisted.")
+  console.log(process.env.ARC_ENV)
+  if (process.env.ARC_ENV !== "testing") {
+    const allowlisted = await checkAllowlist(cleanEmail)
+    if(!allowlisted) {
+      throw Error("This email is not allowlisted.")
+    }
   }
   
   const user = await getUserByEmail(cleanEmail)
   if (user) {
     return user
   }
-  
-  const db = await arc.tables();
   const userId = getUuidByString(cleanEmail)
+  const db = await arc.tables();
   await db.user.put({
     pk: userId,
     email,
@@ -107,15 +95,16 @@ export async function createUser(
   password: Password["password"]
 ) {
   const cleanEmail = dePlussedEmail(email)
-
-  if (!EMAIL_ALLOWLIST.has(cleanEmail)) {
-    throw Error("This email is not allowlisted.")
+  if (process.env.ARC_ENV !== "testing") {
+    const allowlisted = await checkAllowlist(cleanEmail)
+    if(!allowlisted) {
+      throw Error("This email is not allowlisted.")
+    }
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const db = await arc.tables();
   const userId = getUuidByString(cleanEmail)
-
+  const db = await arc.tables();
   await db.password.put({
     pk: userId,
     password: hashedPassword,

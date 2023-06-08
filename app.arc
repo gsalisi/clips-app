@@ -26,5 +26,8 @@ project
   sk **String # noteId
   expiredAt TTL
 
+user_allowlist
+  email *String
+
 @plugins
 secrets-plugin
