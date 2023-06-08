@@ -1,7 +1,4 @@
-import { useOptionalUser } from "~/utils";
-
 export default function IndexPage() {
-  const user = useOptionalUser();
   return (
     <iframe
       title="Feedback Form"
