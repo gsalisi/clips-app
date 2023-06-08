@@ -60,7 +60,11 @@ export async function findOrCreate({
   name,
 }: Pick<User, "email" | "picture" | "provider" | "providerID" | "name">) {
   const cleanEmail = dePlussedEmail(email)
-  console.log(process.env.ARC_ENV)
+  const user = await getUserByEmail(cleanEmail)
+  if (user) {
+    return user
+  }
+
   if (process.env.ARC_ENV !== "testing") {
     const allowlisted = await checkAllowlist(cleanEmail)
     if(!allowlisted) {
@@ -68,10 +72,6 @@ export async function findOrCreate({
     }
   }
   
-  const user = await getUserByEmail(cleanEmail)
-  if (user) {
-    return user
-  }
   const userId = getUuidByString(cleanEmail)
   const db = await arc.tables();
   await db.user.put({
