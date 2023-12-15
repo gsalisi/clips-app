@@ -258,7 +258,7 @@ export default function ProjectPage() {
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>();
   const revalidator = useRevalidator();
   const [cropTrackerOpts, setCropTrackerOpts] = useState<CropTrackerOpts>({
-    excludeLimbs: true,
+    excludeLimbs: false,
     paddingRatio: 1.2,
     smoothingWindowSecs: 2,
   });
