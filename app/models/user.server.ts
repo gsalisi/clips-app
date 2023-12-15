@@ -65,12 +65,12 @@ export async function findOrCreate({
     return user
   }
 
-  if (process.env.ARC_ENV !== "testing") {
-    const allowlisted = await checkAllowlist(cleanEmail)
-    if(!allowlisted) {
-      throw Error("This email is not allowlisted.")
-    }
-  }
+  // if (process.env.ARC_ENV !== "testing") {
+    // const allowlisted = await checkAllowlist(cleanEmail)
+    // if(!allowlisted) {
+    //   throw Error("This email is not allowlisted.")
+    // }
+  // }
   
   const userId = getUuidByString(cleanEmail)
   const db = await arc.tables();
@@ -95,12 +95,12 @@ export async function createUser(
   password: Password["password"]
 ) {
   const cleanEmail = dePlussedEmail(email)
-  if (process.env.ARC_ENV !== "testing") {
-    const allowlisted = await checkAllowlist(cleanEmail)
-    if(!allowlisted) {
-      throw Error("This email is not allowlisted.")
-    }
-  }
+  // if (process.env.ARC_ENV !== "testing") {
+  //   const allowlisted = await checkAllowlist(cleanEmail)
+  //   if(!allowlisted) {
+  //     throw Error("This email is not allowlisted.")
+  //   }
+  // }
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const userId = getUuidByString(cleanEmail)
