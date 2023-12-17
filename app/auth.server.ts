@@ -1,22 +1,23 @@
-import arc from "@architect/functions";
 import { createCookieSessionStorage, json } from "@remix-run/node";
-import { Authenticator, Strategy } from "remix-auth";
+import { Authenticator } from "remix-auth";
 import { FormStrategy } from "remix-auth-form";
 import {
   GoogleStrategy,
-  FacebookStrategy,
+  DiscordStrategy,
   SocialsProvider,
 } from "remix-auth-socials";
 import invariant from "tiny-invariant";
-// import { sessionStorage } from "~/session.server";
 import { findOrCreate, verifyLogin } from "./models/user.server";
 
-// Create an instance of the authenticator
-type AuthUser = {
-  refreshToken?: string;
-  accessToken?: string;
+
+export interface AuthUser {
   userId: string;
-};
+  displayName?: string;
+  avatar?: string | null;
+  email?: string | null;
+  accessToken?: string;
+  refreshToken?: string;
+}
 
 export const sessionStorage = createCookieSessionStorage({
     cookie: {
@@ -29,7 +30,6 @@ export const sessionStorage = createCookieSessionStorage({
     },
   });
 
-// console.log(sessionStorage)
 export let authenticator = new Authenticator<AuthUser>(sessionStorage, {
   sessionKey: "__session",
 });
@@ -77,6 +77,57 @@ const googleStrategy = new GoogleStrategy(
 
 authenticator.use(googleStrategy, SocialsProvider.GOOGLE);
 
+const DISCORD_OAUTH_CLIENT_ID = process.env.DISCORD_OAUTH_CLIENT_ID;
+const DISCORD_OAUTH_CLIENT_SECRET = process.env.DISCORD_OAUTH_CLIENT_SECRET;
+
+invariant(DISCORD_OAUTH_CLIENT_ID, "DISCORD_OAUTH_CLIENT_ID not set.");
+invariant(DISCORD_OAUTH_CLIENT_SECRET, "DISCORD_OAUTH_CLIENT_SECRET not set.");
+
+const discordStrategy = new DiscordStrategy(
+  {
+    clientID: DISCORD_OAUTH_CLIENT_ID.split(":")[1],
+    clientSecret: DISCORD_OAUTH_CLIENT_SECRET,
+    callbackURL: getCallback(SocialsProvider.DISCORD),
+    // Provide all the scopes you want as an array
+    scope: ["identify", "email"],
+  },
+  async ({
+    accessToken,
+    refreshToken,
+    profile,
+  }): Promise<AuthUser> => {
+    const email = profile.__json.email;
+    const picture = profile.__json.avatar;
+
+    if (!email) {
+      throw Error("No email found with discord.")
+    }
+    
+    // Get the user data from your DB or API using the tokens and profile
+    const user = await findOrCreate({
+      email: email,
+      picture: picture || "",
+      provider: profile.provider,
+      providerID: profile.id,
+      name: profile.displayName,
+    });
+    
+    console.log(`${user.id} authenticating using Discord.`)
+
+    return {
+      userId: user.id,
+      displayName: profile.displayName,
+      avatar: picture,
+      email: email,
+      accessToken,
+      refreshToken
+    };
+  },
+);
+
+authenticator.use(discordStrategy, SocialsProvider.DISCORD);
+
+// User and password strategy
 authenticator.use(
   new FormStrategy(async ({ context }) => {
     invariant(context, "authenticate form strategy did not receive context")
@@ -103,8 +154,3 @@ authenticator.use(
   }),
   "user-pass"
 );
-
-// Setup strat for discord
-// https://github.com/JonnyBnator/remix-auth-discord
-
-// setupAuth();

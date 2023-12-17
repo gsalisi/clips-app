@@ -2,6 +2,7 @@ import arc from "@architect/functions";
 import bcrypt from "bcryptjs";
 import invariant from "tiny-invariant";
 import getUuidByString from "uuid-by-string";
+import { emailDomainsAllowlist } from "./constants.server";
 
 const INITIAL_CREDITS_AMOUNT = 10
 
@@ -15,10 +16,9 @@ export type User = {
 };
 export type Password = { password: string };
 
-async function checkAllowlist(email: string): Promise<boolean> {
-  const db = await arc.tables();
-  const allowlist_user = await db.user_allowlist.get({ email: email })
-  return !!allowlist_user
+// DEPRECATED
+function checkAllowlist(email: string): boolean {
+  return emailDomainsAllowlist.has(email.split('@')[1])
 }
 
 export async function getUserById(id: User["id"]): Promise<Pick<User, "id" | "email" | "credits"> | null> {
@@ -65,12 +65,10 @@ export async function findOrCreate({
     return user
   }
 
-  // if (process.env.ARC_ENV !== "testing") {
-    // const allowlisted = await checkAllowlist(cleanEmail)
-    // if(!allowlisted) {
-    //   throw Error("This email is not allowlisted.")
-    // }
-  // }
+  const allowlisted = checkAllowlist(cleanEmail)
+  if(!allowlisted) {
+    throw Error("This email is not allowlisted.")
+  }
   
   const userId = getUuidByString(cleanEmail)
   const db = await arc.tables();
@@ -95,12 +93,11 @@ export async function createUser(
   password: Password["password"]
 ) {
   const cleanEmail = dePlussedEmail(email)
-  // if (process.env.ARC_ENV !== "testing") {
-  //   const allowlisted = await checkAllowlist(cleanEmail)
-  //   if(!allowlisted) {
-  //     throw Error("This email is not allowlisted.")
-  //   }
-  // }
+
+  const allowlisted = checkAllowlist(cleanEmail)
+  if(!allowlisted) {
+    throw Error("This email is not allowlisted.")
+  }
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const userId = getUuidByString(cleanEmail)
