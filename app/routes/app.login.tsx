@@ -102,7 +102,7 @@ export default function LoginPage() {
   }, [actionData]);
 
   return (
-    <div className="mx-auto my-auto w-full max-w-md px-8">
+    <div className="static mx-auto my-auto w-full max-w-md px-8">
       {error && (
         <div className="alert alert-error my-2">
           <svg
@@ -282,6 +282,24 @@ export default function LoginPage() {
           </div>
         </div>
       </Form>
+      <div className="py-2 w-full flex justify-center">
+          <Link
+              className="text-xs mx-2 text-blue-500 underline"
+              to={{
+                pathname: "/privacy-policy",
+              }}
+            >
+            Privacy Policy
+          </Link>
+          <Link
+              className="text-xs text-blue-500 underline"
+              to={{
+                pathname: "/terms-of-use",
+              }}
+            >
+            Terms of Use
+          </Link>
+      </div>
     </div>
   );
 }

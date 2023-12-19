@@ -3,7 +3,6 @@ import { Outlet, useLoaderData, useLocation } from "@remix-run/react";
 import { requireUserId } from "~/session.server";
 import invariant from "tiny-invariant";
 import { getProject } from "~/models/project.server";
-import classNames from "classnames";
 
 export const meta: V2_MetaFunction = () => [{ title: "PopCrop" }];
 

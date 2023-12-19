@@ -1,6 +1,6 @@
 import type { LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, useLoaderData } from "@remix-run/react";
+import { Form, Link, useLoaderData } from "@remix-run/react";
 import { requireUser } from "~/session.server";
 
 export const meta: V2_MetaFunction = () => [{ title: "PopCrop - Profile" }];
@@ -29,6 +29,24 @@ export default function ProfilePage() {
                 Logout
             </button>
           </Form>
+          <div className="py-2 w-full flex justify-center">
+            <Link
+                className="text-xs mx-2 text-blue-500 underline"
+                to={{
+                  pathname: "/privacy-policy",
+                }}
+              >
+              Privacy Policy
+            </Link>
+            <Link
+                className="text-xs text-blue-500 underline"
+                to={{
+                  pathname: "/terms-of-use",
+                }}
+              >
+              Terms of Use
+            </Link>
+        </div>
         </div>
       </div>
     );

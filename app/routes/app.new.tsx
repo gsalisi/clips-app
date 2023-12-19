@@ -87,6 +87,7 @@ export default function ProjectsPage() {
               className={classNames("max-w-s input w-full", {
                 "input-error": !!actionData?.errors?.title,
               })}
+              defaultValue={"Untitled Project"}
               aria-invalid={actionData?.errors?.title ? true : undefined}
               autoFocus
             />
